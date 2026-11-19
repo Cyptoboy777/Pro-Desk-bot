@@ -1,0 +1,50 @@
+# NOT ACTIVE. To turn on, copy this file to .github/workflows/forward-test.yml
+# (GitHub web UI: Add file > Create new file, works from a phone).
+#
+# Every 30 minutes on GitHub's runners: record new Solana tokens + the Risk agent's verdict,
+# score tokens that are 1h / 6h old, and publish data/ and data/report.txt to the
+# `live-data` branch. Read-only public APIs, no secrets, no keys, no orders.
+name: Forward test
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+concurrency: forward-test
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Keep the code, switch to the data branch
+        run: |
+          cp -r collector.py desk /tmp/app
+          git fetch origin live-data || true
+          if git rev-parse --verify -q origin/live-data >/dev/null; then
+            git checkout -q -B live-data origin/live-data
+          else
+            git checkout -q --orphan live-data && git rm -rq --cached . && git clean -fdq
+          fi
+      - name: Collect, score, report
+        env:
+          PYTHONPATH: /tmp/app
+        run: |
+          mkdir -p data
+          python3 /tmp/app/collector.py collect --data data/snapshots.jsonl || true
+          python3 /tmp/app/collector.py score   --data data/snapshots.jsonl || true
+          python3 /tmp/app/collector.py report  --data data/snapshots.jsonl > data/report.txt
+      - name: Publish data (append-only, no force push)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || { git commit -qm "forward test $(date -u +%FT%TZ)"; git push origin live-data; }
