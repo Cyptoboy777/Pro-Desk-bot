@@ -4,6 +4,8 @@
 
 A paper-trading desk of six rule-based agents for new Solana tokens: **Scanner**, **Rug Check**, **Sizer**, **Executor**, **Logger**, **Equity**, with a **Head of Desk** that routes data and flags what needs a human. Every decision is written to a log with a reason.
 
+**[Live dashboard →](https://cyptoboy777.github.io/Pro-Desk-bot/)** (static view of real paper-trading runs from the engine)
+
 > **Paper trading only.** There is no wallet code, no private keys and no order placement. Nothing here is financial advice, and results from the built-in simulator are not evidence of real-market profit.
 
 ## What is in the box
