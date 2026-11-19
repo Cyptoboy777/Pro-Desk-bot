@@ -26,10 +26,7 @@ python3 -m pip install pytest
 python3 -m pytest -q tests
 python3 run_desk.py --seeds 100
 python3 experiments.py
-python3 export_runs.py && python3 - <<'PY'
-t = open('dashboard_template.html').read().replace('__DATA__', open('dashboard_data.json').read())
-open('dashboard.html', 'w').write(t)
-PY
+python3 export_runs.py && python3 build_dashboard.py   # writes docs/index.html
 ```
 
 Live alerts (read-only, optional Telegram via `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`):
