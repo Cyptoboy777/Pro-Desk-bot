@@ -14,6 +14,7 @@ class Token:
     mint_authority_disabled: bool
     freeze_authority_disabled: bool
     lp_burned_pct: float
+    risk_flags: list = field(default_factory=list)
 
 
 @dataclass

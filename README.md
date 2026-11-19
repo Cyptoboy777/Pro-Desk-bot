@@ -36,7 +36,7 @@ python3 alerts.py --probe   # verify the API field names against real responses 
 python3 alerts.py --once
 ```
 
-The live adapter's field names were written from memory of the public APIs and have not been verified against real responses. It fails closed: missing safety data means the token is rejected.
+The live adapter was checked against one real DexScreener and one real RugCheck response (captured 2026-11-19). It excludes liquidity-pool accounts from the top-holder share, flags Token-2022 traps (permanent delegate, transfer hook, transfer fee) and fails closed: missing safety data means the token is rejected. Note that mint-authority-disabled and LP-locked are defaults for pump.fun-style launches, so they say little there. Holder concentration, insiders and liquidity matter more.
 
 ## What the experiments found
 

@@ -47,6 +47,7 @@ class RiskAgent:
             r.append("position too large vs liquidity")
         if t.age_minutes < self.min_age:
             r.append("too new")
+        r.extend(t.risk_flags)
         return Verdict(not r, r)
 
 

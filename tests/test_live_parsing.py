@@ -41,3 +41,45 @@ def test_unverified_data_never_passes_risk_agent():
     s = parse_safety(None)
     t = Token("X", "X", 1.0, 1e6, 1e6, 999, **s)
     assert not RiskAgent().check(t, 25).ok
+
+
+# ---- fixture transcribed from a REAL RugCheck /report response (2026-11-19, one pump.fun-style token)
+POOL = "97VYacToT9utEG9TwporrFswbS3otTq88GSgpETBmLZe"
+REAL = {
+    "mintAuthority": None, "freezeAuthority": None, "rugged": False, "risks": [], "transferFee": {"pct": 0},
+    "token_extensions": {"permanentDelegate": None, "transferHook": None, "nonTransferable": False},
+    "markets": [{"pubkey": POOL, "liquidityA": "HsYf", "liquidityB": "FZfj", "lp": {"lpLockedPct": 100}}],
+    "topHolders": [{"address": "HsYf", "pct": 19.19, "owner": POOL, "insider": False}]
+    + [{"address": f"H{i}", "pct": p, "owner": f"O{i}", "insider": False}
+       for i, p in enumerate([3.63, 2.87, 2.60, 2.27, 1.86, 1.82, 1.74, 1.60, 1.57, 1.54])],
+}
+
+
+def test_real_payload_excludes_pool_from_top10():
+    s = parse_safety(REAL)
+    assert s["mint_authority_disabled"] and s["freeze_authority_disabled"]
+    assert s["lp_burned_pct"] == 100 and s["risk_flags"] == []
+    assert 21 < s["top10_holders_pct"] < 22      # not 39% (which counted the pool)
+
+
+def test_token2022_and_rugcheck_flags_reject():
+    import copy
+    for patch, expect in (({"token_extensions": {"permanentDelegate": "X"}}, "permanent delegate"),
+                          ({"token_extensions": {"transferHook": "X"}}, "transfer hook"),
+                          ({"transferFee": {"pct": 10}}, "transfer fee"),
+                          ({"rugged": True}, "rugged"),
+                          ({"risks": [{"name": "Mutable metadata", "level": "danger"}]}, "danger")):
+        rep = copy.deepcopy(REAL); rep.update(patch)
+        s = parse_safety(rep)
+        assert any(expect in f for f in s["risk_flags"]), patch
+        t = Token("X", "X", 1.0, 1e6, 1e6, 999, **s)
+        assert not RiskAgent().check(t, 25).ok
+
+
+def test_real_token_rejected_only_for_low_liquidity():
+    s = parse_safety(REAL)
+    m = parse_market([{"baseToken": {"address": "M", "symbol": "TTWO"}, "priceUsd": "0.00005199",
+                       "liquidity": {"usd": 18643.05}, "volume": {"h24": 124239},
+                       "pairCreatedAt": (time.time() - 1290) * 1000}], "M")
+    t = Token("M", **m, **s)
+    assert RiskAgent().check(t, 25).reasons == ["liquidity $18,643"]
