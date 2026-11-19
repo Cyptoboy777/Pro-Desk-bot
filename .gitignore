@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+*.sqlite
+.env
+dashboard.html
+dashboard_data.json
+*.zip

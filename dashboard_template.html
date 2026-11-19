@@ -1,0 +1,260 @@
+<title>Desk Terminal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Layout: terminal window. Header (identity + balance), agents rail left, flow/trade/log centre, experiments below.
+   Single dark look by choice, no animation. */
+:root {
+  --bg: #141318; --panel: #1c1b21; --panel2: #23222a; --line: #393741; --line2: #4a4753;
+  --text: #ebe9ee; --muted: #8f8c98; --green: #4ade80; --red: #ff6b6b; --yellow: #f3da4f;
+  --purple: #9a8cff; --pink: #f08ad0;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 1.45;
+  padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.win { max-width: 1180px; margin: 0 auto; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); overflow: hidden; }
+.bar { display: flex; justify-content: space-between; gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+.dots span { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.badge { border: 1px dashed var(--line2); border-radius: 5px; padding: 1px 7px; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+.b-green { color: var(--green); border-color: var(--green); } .b-red { color: var(--red); border-color: var(--red); }
+.b-yellow { color: var(--yellow); border-color: var(--yellow); } .b-purple { color: var(--purple); border-color: var(--purple); }
+.b-pink { color: var(--pink); border-color: var(--pink); } .b-muted { color: var(--muted); }
+.main { padding: 18px 20px 22px; display: grid; gap: 18px; }
+.head { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: center; }
+.title { font-size: 28px; font-weight: 700; letter-spacing: -.01em; margin: 0 0 6px; text-wrap: balance; }
+.title em { font-style: normal; color: var(--purple); }
+.status { color: var(--yellow); font-weight: 500; } .sub { color: var(--muted); }
+.kpis { display: grid; grid-template-columns: 1.4fr 1fr; gap: 6px 20px; }
+.kpi .v { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.kpi .l { color: var(--muted); font-size: 11px; letter-spacing: .06em; }
+.grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; }
+.panel { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 12px 14px; min-width: 0; }
+.cap { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+.agents { display: grid; gap: 10px; align-content: start; }
+.agent { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); padding: 10px 12px; }
+.agent .row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.agent b { font-size: 14px; letter-spacing: .02em; }
+.agent .role { color: var(--muted); font-size: 11px; }
+.agent .says { margin-top: 6px; font-size: 12px; min-height: 2.9em; overflow-wrap: anywhere; }
+.agent .last { color: var(--muted); font-size: 11px; margin-top: 2px; overflow-wrap: anywhere; }
+.c-yellow b { color: var(--yellow); } .c-red b { color: var(--red); } .c-pink b { color: var(--pink); }
+.c-green b { color: var(--green); } .c-purple b { color: var(--purple); } .c-text b { color: var(--text); }
+.col { display: grid; gap: 14px; min-width: 0; align-content: start; }
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.tok { border: 1px dashed var(--line2); border-radius: 8px; padding: 8px 10px; min-height: 58px; overflow-wrap: anywhere; }
+.tok b { font-size: 14px; } .tok .m { color: var(--muted); font-size: 11px; } .tok.rej { border-color: var(--red); } .tok.ok { border-color: var(--green); }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.tile { border: 1px dashed var(--line2); border-radius: 8px; padding: 8px 10px; }
+.tile .k { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tile .n { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.two { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; }
+.kv { display: grid; grid-template-columns: 70px 1fr; gap: 3px 10px; margin-top: 8px; }
+.kv span:nth-child(odd) { color: var(--muted); }
+.big { font-size: 22px; font-weight: 700; }
+.pos { color: var(--green); } .neg { color: var(--red); } .warn { color: var(--yellow); }
+.tail { font-size: 12px; min-height: 130px; overflow-wrap: anywhere; } .tail div { margin-bottom: 4px; } .tail .r { color: var(--muted); padding-left: 2.2em; }
+.cmp { display: grid; grid-template-columns: 52px 1fr auto; gap: 8px 12px; align-items: center; }
+.track { height: 7px; border-radius: 4px; background: var(--panel2); overflow: hidden; } .fill { height: 100%; background: var(--green); }
+svg.curve { width: 100%; height: 90px; display: block; margin-top: 10px; }
+.log .line { display: grid; grid-template-columns: 52px 78px 1fr auto; gap: 10px; align-items: baseline; padding: 6px 0; border-top: 1px solid var(--line); }
+.log .line:first-child { border-top: 0; } .log .why { grid-column: 3 / 5; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+.log .sym { font-weight: 700; overflow-wrap: anywhere; } .log .t { color: var(--muted); }
+.ctl { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.ctl button { font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--line2); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.ctl button[aria-pressed="true"] { border-color: var(--purple); color: var(--purple); }
+.ctl button:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+input[type=range] { flex: 1 1 220px; accent-color: var(--purple); min-width: 0; }
+.note { color: var(--muted); font-size: 12px; max-width: 80ch; }
+.scroll { overflow-x: auto; } table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 10px; border-top: 1px solid var(--line); vertical-align: top; } th { color: var(--muted); font-weight: 500; border-top: 0; white-space: nowrap; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+.fixes { display: grid; gap: 8px; margin-top: 4px; } .fix { display: grid; grid-template-columns: 70px 1fr; gap: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.fix:first-child { border-top: 0; padding-top: 0; }
+@media (max-width: 900px) {
+  .head, .grid, .two { grid-template-columns: 1fr; }
+  .flow, .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .title { font-size: 24px; } .main { padding: 14px 12px 18px; }
+  .log .line { grid-template-columns: 46px 70px 1fr; } .log .line .amt { grid-column: 3; } .log .why { grid-column: 1 / 4; }
+}
+</style>
+
+<div class="win">
+  <div class="bar"><div class="dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+    <span>Desk Terminal · six agents · log first</span><span class="badge b-green">paper · simulated market</span></div>
+  <div class="main">
+    <div class="head">
+      <div>
+        <h1 class="title">Desk <em>Terminal</em> <span class="badge b-muted">v2</span></h1>
+        <div class="status" id="status">paper run</div>
+        <div class="sub" id="substatus">every trade gets a reason</div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="bal">$0</div><div class="l">balance</div></div>
+        <div class="kpi"><div class="v" id="ntr">0</div><div class="l">trades</div></div>
+        <div class="kpi"><div class="v pos" id="nw">0</div><div class="l">wins</div></div>
+        <div class="kpi"><div class="v neg" id="nl">0</div><div class="l">losses</div></div>
+      </div>
+    </div>
+
+    <div class="panel ctl" role="group" aria-label="Run controls">
+      <span class="sub">run</span>
+      <span id="runs" class="ctl"></span>
+      <label class="sub" for="scrub">time</label>
+      <input id="scrub" type="range" min="1" max="120" value="120">
+      <span id="clock" class="sub">07:00</span>
+    </div>
+
+    <div class="grid">
+      <div class="agents" id="agents"></div>
+      <div class="col">
+        <div class="panel">
+          <div class="cap"><span>Live flow · scan → check → size → exec → log</span><span id="checked"></span></div>
+          <div class="flow" id="flow"></div>
+          <div class="tiles" id="tiles"></div>
+        </div>
+        <div class="two">
+          <div class="panel" id="trade"></div>
+          <div class="panel"><div class="cap"><span>$ tail -f night.log</span><span id="nlines"></span></div><div class="tail" id="tail"></div></div>
+        </div>
+        <div class="panel">
+          <div class="cap"><span>Result · start vs now</span><span id="span">23:00 → 07:00</span></div>
+          <div class="cmp"><span>START</span><div class="track"><div class="fill" style="width:100%;background:var(--muted)"></div></div><b id="start">$1,000</b>
+            <span>NOW</span><div class="track"><div class="fill" id="nowbar"></div></div><b id="now">$0</b></div>
+          <svg class="curve" id="curve" viewBox="0 0 600 90" preserveAspectRatio="none" role="img" aria-label="Equity curve"></svg>
+          <div class="sub" style="margin-top:6px">Paper trades on a synthetic market with fees, slippage and rug pulls. Not real results.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel log"><div class="cap"><span>Log</span><span>every decision has a reason</span></div><div id="log"></div></div>
+
+    <div class="panel">
+      <div class="cap"><span>Problems found, fixes tried</span><span>100 tuning seeds · 100 unseen seeds</span></div>
+      <div class="fixes">
+        <div class="fix"><span class="badge b-red">problem</span><span>Baseline (fixed $25 ticket, no protections) loses about 3.5% a night. Stop-losses and rug exits cost more than trailing stops earn. Same result on unseen seeds, so it is not noise.</span></div>
+        <div class="fix"><span class="badge b-yellow">no help</span><span>Skip tokens that already ran 25%: no change (-3.46%). Stricter risk filter (age 30m, top-10 ≤ 30%): no change (-3.60%).</span></div>
+        <div class="fix"><span class="badge b-red">worse</span><span>Risk-based sizing alone made it worse (-5.32%, worst night -19%). With no edge, bigger size only means bigger losses. It was dropped as a standalone fix.</span></div>
+        <div class="fix"><span class="badge b-green">kept</span><span>Stoploss guard (-2.83%), cooldown (-3.45%), and an edge gate that cuts size to a quarter while the last 8 closed trades are net negative (-2.81%). Together: -2.44%, worst night -9.3%, max drawdown 4.8%.</span></div>
+        <div class="fix"><span class="badge b-purple">limit</span><span>None of the fixes turn a no-edge market positive. Stealth rugs look clean and pass every check, so they are bounded by size and exposure rather than detected. Profit only appears when the market itself has a strong edge (see table).</span></div>
+      </div>
+      <div class="scroll" style="margin-top:12px"><table>
+        <thead><tr><th>Market (unseen seeds, mean return per night)</th><th class="n">Baseline</th><th class="n">Guard + cooldown</th><th class="n">+ edge gate (final)</th><th class="n">+ risk 0.5%</th></tr></thead>
+        <tbody>
+          <tr><td>10% stealth rugs · no edge</td><td class="n neg">-2.60%</td><td class="n neg">-2.08%</td><td class="n neg">-1.48%</td><td class="n neg">-1.95%</td></tr>
+          <tr><td>10% stealth rugs · weak edge</td><td class="n neg">-0.56%</td><td class="n pos">+0.32%</td><td class="n pos">+0.33%</td><td class="n pos">+0.48%</td></tr>
+          <tr><td>10% stealth rugs · strong edge</td><td class="n pos">+33.12%</td><td class="n pos">+32.62%</td><td class="n pos">+32.56%</td><td class="n pos">+47.63%</td></tr>
+          <tr><td>30% stealth rugs · no edge</td><td class="n neg">-5.33%</td><td class="n neg">-4.16%</td><td class="n neg">-3.23%</td><td class="n neg">-3.84%</td></tr>
+          <tr><td>30% stealth rugs · weak edge</td><td class="n neg">-3.51%</td><td class="n neg">-2.83%</td><td class="n neg">-2.44%</td><td class="n neg">-3.08%</td></tr>
+          <tr><td>30% stealth rugs · strong edge</td><td class="n pos">+24.84%</td><td class="n pos">+24.55%</td><td class="n pos">+23.61%</td><td class="n pos">+33.50%</td></tr>
+        </tbody></table></div>
+      <p class="note">Weak edge means a 0.4% per-step drift on 14% of tokens, strong edge means 2%. The sizing of 45% of equity per trade seen in the reference video is not used: one rug at that size ends the account.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = __DATA__;
+const $ = id => document.getElementById(id);
+const fmt = n => (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const clock = t => { const m = (23 * 60 + t * 4) % 1440; return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+const steps = DATA.runs[0].curve.length;
+let cur = 1;
+const lab = { worst: "worst night", median: "median night", best: "best night" };
+
+$("scrub").max = steps; $("scrub").value = steps;
+$("runs").innerHTML = DATA.runs.map((r, i) =>
+  `<button type="button" data-i="${i}" aria-pressed="${i === cur}">${lab[r.label]} · seed ${r.seed}</button>`).join("");
+$("runs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; cur = +b.dataset.i;
+  [...$("runs").children].forEach((x, i) => x.setAttribute("aria-pressed", i === cur)); render(); });
+$("scrub").addEventListener("input", render);
+
+function agentCard(cls, name, badge, bcls, role, says, last) {
+  return `<div class="agent ${cls}"><div class="row"><b>${name}</b><span class="badge ${bcls}">${badge}</span></div>
+  <div class="role">${role}</div><div class="says">${says}</div><div class="last">${last}</div></div>`;
+}
+
+function render() {
+  const run = DATA.runs[cur], T = +$("scrub").value;
+  const ev = run.events.filter(e => e.t <= T);
+  const logEv = ev.filter(e => e.kind !== "SCAN");
+  const exits = ev.filter(e => e.kind === "EXIT"), enters = ev.filter(e => e.kind === "ENTER");
+  const wins = exits.filter(e => e.pnl > 0).length, losses = exits.length - wins;
+  const bal = run.curve[T - 1];
+  $("bal").textContent = fmt(bal); $("ntr").textContent = exits.length; $("nw").textContent = wins; $("nl").textContent = losses;
+  $("clock").textContent = clock(T); $("now").textContent = fmt(bal);
+  $("start").textContent = fmt(run.start);
+  const hi = Math.max(run.start, ...run.curve) * 1.02;
+  $("nowbar").style.width = Math.min(100, bal / hi * 100) + "%";
+  $("nowbar").style.background = bal >= run.start ? "var(--green)" : "var(--red)";
+  const halted = ev.some(e => e.kind === "HALT"), paused = ev.filter(e => e.kind === "PAUSE").slice(-1)[0];
+  $("status").textContent = (halted ? "halted · loss limit hit" : paused && paused.t >= T - 20 ? "paused · stoploss guard" : "running") + " · " + clock(T);
+  $("substatus").textContent = "run " + lab[run.label] + " · seed " + run.seed;
+
+  const last = k => { const l = ev.filter(e => e.kind === k); return l[l.length - 1]; };
+  const sc = last("SCAN"), fl = last("FILTERED"), en = last("ENTER"), ex = last("EXIT");
+  const nF = ev.filter(e => e.kind === "FILTERED").length, nS = ev.filter(e => e.kind === "SKIP").length;
+  const lastRisk = ev.filter(e => e.kind === "FILTERED" || e.kind === "ENTER").slice(-1)[0];
+  const lastExec = ev.filter(e => e.kind === "ENTER" || e.kind === "EXIT").slice(-1)[0];
+  $("agents").innerHTML = [
+    agentCard("c-yellow", "SCANNER", "scan", "b-yellow", "new pairs + volume spikes", "flags only, never trades", sc ? `last ${esc(sc.sym)} · ${esc(sc.reason)}` : "waiting"),
+    agentCard("c-red", "RUG CHECK", lastRisk ? (lastRisk.kind === "ENTER" ? "pass" : "fail") : "idle", lastRisk && lastRisk.kind !== "ENTER" ? "b-red" : "b-green",
+      "filters suspicious tokens", "nothing executes before a pass", lastRisk ? `${lastRisk.kind === "ENTER" ? "passed" : "filtered"} ${esc(lastRisk.sym)}${lastRisk.kind === "FILTERED" ? " · " + esc(lastRisk.reason) : ""}` : "waiting"),
+    agentCard("c-pink", "SIZER", en ? "size" : "idle", "b-pink", "sizes from equity and stop distance", "never a fixed ticket, shrinks when the desk has no edge", en ? `${esc(en.sym)} · ${en.size_pct}% of equity` : "no size yet"),
+    agentCard("c-green", "EXECUTOR", lastExec ? (lastExec.kind === "ENTER" ? "live" : "flat") : "idle", "b-green", "opens + closes, tracks slippage", "paper fills with fees and price impact", lastExec ? (lastExec.kind === "ENTER" ? `LONG ${esc(lastExec.sym)} · slip ${lastExec.slip}%` : `closed ${esc(lastExec.sym)} ${lastExec.pnl >= 0 ? "+" : ""}${fmt(lastExec.pnl)}`) : "nothing open"),
+    agentCard("c-yellow", "LOGGER", "write", "b-yellow", "writes every decision", "no trade without a reason", `line #${logEv.length} · ${logEv.length ? esc(logEv[logEv.length - 1].kind.toLowerCase() + " " + logEv[logEv.length - 1].sym) : "-"}`),
+    agentCard("c-purple", "EQUITY", "update", "b-purple", "balance + curve", "updates on every close", `${fmt(bal)} · ${exits.length} closes`),
+    agentCard("c-text", "YOU", "reading", "b-muted", "reads the log in the morning", "stopped asking, started reading", `${logEv.length} lines to read${run.needs_human.length ? " · " + run.needs_human.length + " flag for you" : ""}`)
+  ].join("");
+  $("checked").textContent = "candidates " + ev.filter(e => e.kind === "SCAN").length;
+
+  // live flow: scans from the most recent steps, marked by what happened next
+  const recent = ev.filter(e => e.kind === "SCAN" && e.t >= T - 5).slice(-4).reverse();
+  $("flow").innerHTML = recent.length ? recent.map(s => {
+    const o = ev.find(e => e.t === s.t && e.sym === s.sym && ["FILTERED", "ENTER", "SKIP"].includes(e.kind));
+    const cls = o ? (o.kind === "ENTER" ? "ok" : o.kind === "FILTERED" ? "rej" : "") : "";
+    return `<div class="tok ${cls}"><b>${esc(s.sym)}</b><div class="m">${esc(s.reason)}</div><div class="m">${o ? esc(o.kind.toLowerCase()) : "no order"}</div></div>`;
+  }).join("") : `<div class="tok"><b>-</b><div class="m">no spikes in the last 5 steps</div></div>`;
+  const eqLast = exits.length ? exits[exits.length - 1].pnl : 0;
+  $("tiles").innerHTML = [
+    ["Filtered", nF, `+ ${nS} skipped`, "var(--red)"], ["Sizer", en ? en.size_pct + "% eq" : "-", en ? fmt(en.size_pct / 100 * bal) : "", "var(--pink)"],
+    ["Logger", "line " + logEv.length, "each with a reason", "var(--yellow)"], ["Equity", (eqLast >= 0 ? "+" : "") + fmt(eqLast), "last close", "var(--purple)"]
+  ].map(t => `<div class="tile" style="border-color:${t[3]}"><div class="k" style="color:${t[3]}">${t[0]}</div><div class="n">${esc(t[1])}</div><div class="m sub">${esc(t[2])}</div></div>`).join("");
+
+  // trade panel: open position if any, else last closed round trip
+  const open = {}; ev.forEach(e => { if (e.kind === "ENTER") open[e.sym] = e; if (e.kind === "EXIT") delete open[e.sym]; });
+  const ol = Object.values(open), tr = ol.length ? ol[ol.length - 1] : en;
+  let tx = '<div class="cap"><span>Trade · entry vs exit</span><span class="badge b-muted">none</span></div><div class="sub">No trade yet.</div>';
+  if (tr) {
+    const cl = exits.filter(e => e.sym === tr.sym && e.t >= tr.t)[0];
+    tx = `<div class="cap"><span>Trade · entry vs exit</span><span class="badge ${cl ? "b-muted" : "b-green"}">${cl ? "closed" : "open"}</span></div>
+      <div class="big">${esc(tr.sym)} <span class="badge b-green">long</span> <span class="${cl ? (cl.pnl >= 0 ? "pos" : "neg") : "warn"}">${cl ? (cl.pnl >= 0 ? "+" : "") + fmt(cl.pnl) : "open"}</span></div>
+      <div class="kv"><span>opened</span><span>${clock(tr.t)}</span><span>exit</span><span>${cl ? esc(cl.reason) + " · " + clock(cl.t) : "open"}</span>
+      <span>slip</span><span>${tr.slip}%</span><span>size</span><span>${tr.size_pct}% of equity</span><span>reason</span><span>${esc(tr.reason)}</span></div>`;
+  }
+  $("trade").innerHTML = tx;
+
+  const tl = logEv.slice(-5);
+  $("nlines").textContent = logEv.length + " lines";
+  $("tail").innerHTML = tl.length ? tl.map(e => `<div>${clock(e.t)} ${esc(e.kind)} ${esc(e.sym)} ${e.kind === "ENTER" ? "size " + e.size_pct + "%" : e.pnl !== undefined ? (e.pnl >= 0 ? "+" : "") + fmt(e.pnl) : ""}<div class="r">${esc(e.reason)}</div></div>`).join("") : "<div class='sub'>log empty</div>";
+
+  const col = { ENTER: "pos", EXIT: "", SKIP: "warn", FILTERED: "neg", PAUSE: "warn", HALT: "neg" };
+  $("log").innerHTML = logEv.slice(-12).map(e => {
+    const amt = e.kind === "ENTER" ? `<span class="amt pos">size ${e.size_pct}%</span>` : e.kind === "EXIT" ? `<span class="amt ${e.pnl >= 0 ? "pos" : "neg"}">${e.pnl >= 0 ? "+" : ""}${fmt(e.pnl)}</span>` : `<span class="amt sub">no order</span>`;
+    return `<div class="line"><span class="t">${clock(e.t)}</span><span class="badge ${e.kind === "ENTER" ? "b-green" : e.kind === "EXIT" ? (e.pnl >= 0 ? "b-green" : "b-red") : e.kind === "FILTERED" || e.kind === "HALT" ? "b-red" : "b-yellow"}">${e.kind.toLowerCase()}</span>
+      <span class="sym">${esc(e.sym)}</span>${amt}<span class="why">reason: ${esc(e.reason)}</span></div>`;
+  }).join("") || "<div class='sub'>nothing logged yet</div>";
+
+  // equity curve, drawn to one scale
+  const W = 600, H = 90, mn = Math.min(run.start, ...run.curve), mx = Math.max(run.start, ...run.curve), pad = (mx - mn) * 0.1 || 1;
+  const X = i => i / (steps - 1) * W, Y = v => H - (v - (mn - pad)) / (mx - mn + 2 * pad) * H;
+  const pts = run.curve.slice(0, T).map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  const full = run.curve.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+  $("curve").innerHTML = `<line x1="0" x2="${W}" y1="${Y(run.start)}" y2="${Y(run.start)}" stroke="#4a4753" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>
+    <polyline points="${full}" fill="none" stroke="#393741" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+    <polyline points="${pts}" fill="none" stroke="${bal >= run.start ? "#4ade80" : "#ff6b6b"}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+}
+render();
+</script>
