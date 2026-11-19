@@ -48,3 +48,7 @@ On unseen seeds the baseline (fixed ticket, no protections) lost about 3.5% a ni
 2. Missing safety data is treated as unsafe.
 3. A circuit breaker halts entries at a 5% loss and flags it for a human.
 4. Before any real money: weeks of live read-only alerts, then paper results you checked yourself, then a separate wallet with an amount you can afford to lose.
+
+## Forward test (does the desk have any real edge?)
+
+`collector.py` records real new Solana tokens with the Risk agent's verdict, then revisits them after 1h and 6h and writes price and liquidity changes. `python3 collector.py report` compares tokens that passed vs were rejected (raw price change and rug rate, before costs). To run it unattended on GitHub, copy `contrib/forward-test.workflow.yml` to `.github/workflows/forward-test.yml`; results land on the `live-data` branch (`data/report.txt`). Trust nothing before 100+ tokens per group.
