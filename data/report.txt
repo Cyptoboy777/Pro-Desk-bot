@@ -1,11 +1,11 @@
-44 tokens recorded, 3 passed the Risk agent
+66 tokens recorded, 6 passed the Risk agent
 
 == after 1h (raw price change, before any costs)
-PASSED    n=  2 | median   -97.8% | mean    -97.8% | up   0% | rugged/gone 100%
-REJECTED  n= 20 | median   -31.6% | mean    -20.7% | up  20% | rugged/gone  65%
+PASSED    n=  3 | median   -97.0% | mean    -94.4% | up   0% | rugged/gone 100%
+REJECTED  n= 41 | median   -35.9% | mean    -25.3% | up  20% | rugged/gone  63%
 
 == after 6h (raw price change, before any costs)
-PASSED    n=  2 | median   -97.8% | mean    -97.8% | up   0% | rugged/gone 100%
-REJECTED  n= 20 | median   -31.6% | mean    -20.7% | up  20% | rugged/gone  65%
+PASSED    n=  3 | median   -97.0% | mean    -94.4% | up   0% | rugged/gone 100%
+REJECTED  n= 41 | median   -35.9% | mean    -25.3% | up  20% | rugged/gone  63%
 
 Small samples mean nothing. Wait for 100+ tokens per group before trusting any number.
