@@ -20,6 +20,7 @@ A paper-trading desk of six rule-based agents for new Solana tokens: **Scanner**
 | `run_desk.py` | One simulated night, or `--seeds N` for a distribution |
 | `alerts.py` | Live **read-only** alerts from DexScreener + RugCheck (run `--probe` first, see below) |
 | `export_runs.py`, `dashboard_template.html` | Builds the static dashboard from real paper runs |
+| `paper_live.py` | Live paper trader on real prices, state persisted between runs |
 | `collector.py` | Forward test: record real new tokens, score them after 1h / 6h, compare passed vs rejected |
 | `bot/telegram_bot.py` | Read-only Telegram bot: send a token address, get the Risk agent's verdict |
 | `assets/` | Logo, favicon, social preview, screenshots |
@@ -57,6 +58,10 @@ On unseen seeds the baseline (fixed ticket, no protections) lost about 3.5% a ni
 ## Forward test (does the desk have any real edge?)
 
 `collector.py` records real new Solana tokens with the Risk agent's verdict, then revisits them after 1h and 6h and writes price and liquidity changes. `python3 collector.py report` compares tokens that passed vs were rejected (raw price change and rug rate, before costs). To run it unattended on GitHub, copy `contrib/forward-test.workflow.yml` to `.github/workflows/forward-test.yml`; results land on the `live-data` branch (`data/report.txt`). Trust nothing before 100+ tokens per group.
+
+## Live paper trading
+
+`paper_live.py run` advances the desk by one tick on **real tokens and real prices** with simulated fills: it keeps a watchlist, applies the Risk agent, sizing, exits and protections, and persists state in `data/paper_state.json` (decisions in `data/paper_events.jsonl`). The Actions workflow runs it every 30 minutes; read `data/paper_report.txt` on the `live-data` branch. Limits: polling every ~30 minutes cannot honour fast stops, and DexScreener prices are not executable quotes, so treat results as indicative only.
 
 ## Telegram risk-check bot
 

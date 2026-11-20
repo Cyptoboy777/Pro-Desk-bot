@@ -2,7 +2,7 @@
 # (GitHub web UI: Add file > Create new file, works from a phone).
 #
 # Every 30 minutes on GitHub's runners: record new Solana tokens + the Risk agent's verdict,
-# score tokens that are 1h / 6h old, and publish data/ and data/report.txt to the
+# score tokens that are 1h / 6h old, advance the live paper trader (data/paper_report.txt), and publish data/ and data/report.txt to the
 # `live-data` branch. Read-only public APIs, no secrets, no keys, no orders.
 name: Forward test
 
@@ -27,7 +27,7 @@ jobs:
           python-version: "3.13"
       - name: Keep the code, switch to the data branch
         run: |
-          cp -r collector.py desk /tmp/app
+          cp -r collector.py paper_live.py desk /tmp/app
           git fetch origin live-data || true
           if git rev-parse --verify -q origin/live-data >/dev/null; then
             git checkout -q -B live-data origin/live-data
@@ -42,6 +42,7 @@ jobs:
           python3 /tmp/app/collector.py collect --data data/snapshots.jsonl || true
           python3 /tmp/app/collector.py score   --data data/snapshots.jsonl || true
           python3 /tmp/app/collector.py report  --data data/snapshots.jsonl > data/report.txt
+          python3 /tmp/app/paper_live.py run > data/paper_report.txt || true
       - name: Publish data (append-only, no force push)
         run: |
           git config user.name "github-actions[bot]"

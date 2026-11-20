@@ -98,3 +98,17 @@ def fetch_token(mint):
     except Exception:
         s = parse_safety(None)  # unreachable safety data => unsafe
     return Token(mint=mint, **m, **s)
+
+
+def fetch_market(mint):
+    """DexScreener only (cheap). Returns the parse_market dict or None."""
+    m = parse_market(_get(f"{DEX}/tokens/v1/solana/{mint}"), mint)
+    return m if m and m["price"] > 0 else None
+
+
+def fetch_safety(mint):
+    """RugCheck report -> safety fields. Any failure => fail-closed defaults."""
+    try:
+        return parse_safety(_get(f"{RUG}/tokens/{mint}/report"))
+    except Exception:
+        return parse_safety(None)
