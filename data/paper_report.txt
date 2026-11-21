@@ -1,2 +1,0 @@
-ticks 4 | equity $999.80 (-0.02%) | open 1 | closed 0 (wins 0, losses 0) | halted False
-Paper results on real prices with simulated fills. Small samples mean nothing.
