@@ -53,5 +53,15 @@ def test_report_separates_passed_and_rejected_and_counts_rugs(tmp_path):
     collector.score(lambda m: after[m], p, now=3600)
     r = collector.report(p)
     assert "3 tokens recorded, 2 passed" in r
-    assert "PASSED    n=  2" in r and "rugged/gone  50%" in r      # OK2 lost 99% of its liquidity
+    assert "PASSED    n=  2" in r and "rugged/gone 1/2" in r        # OK2 lost 99% of its liquidity
     assert "REJECTED  n=  1" in r
+
+
+def test_report_excludes_late_outcomes_and_ignores_rug_when_no_liquidity(tmp_path):
+    p = str(tmp_path / "s.jsonl")
+    collector.collect(lambda m: tok(m, liq=0 if m == "NOLIQ" else 100_000, bad=True), ["NOLIQ", "LATE"], p, now=0)
+    collector.score(lambda m: tok(m, 0.5, liq=0), p, now=3600)            # on time for 1h
+    collector.score(lambda m: tok(m, 0.5, liq=0), p, now=40 * 3600)       # 6h and 24h outcomes: 6h is late
+    r = collector.report(p)
+    assert "REJECTED  n=  2" in r and "rugged/gone 1/1" in r              # only LATE had liquidity to lose; NOLIQ is not in the denominator
+    assert "excluded" in r

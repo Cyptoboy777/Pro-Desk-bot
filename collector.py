@@ -17,7 +17,8 @@ import time
 from desk import live
 from desk.agents import RiskAgent
 
-HORIZONS_H = (1, 6)
+HORIZONS_H = (1, 6, 24)
+LATE = 1.5                  # an outcome counts for horizon h only if measured within LATE*h hours
 RUG_LIQ_DROP = 0.5          # liquidity fell by half or more => counted as rugged
 
 
@@ -80,27 +81,35 @@ def score(fetch_token, path, now=None):
 def report(path):
     rows = load(path)
     entries = {r["mint"]: r for r in rows if r["kind"] == "entry"}
-    outs = {}
-    for r in rows:
-        if r["kind"] == "outcome":
-            outs[(r["mint"], r["horizon_h"])] = r
+    outs = {(r["mint"], r["horizon_h"]): r for r in rows if r["kind"] == "outcome"}
     lines = [f"{len(entries)} tokens recorded, {sum(e['pass'] for e in entries.values())} passed the Risk agent"]
     for h in HORIZONS_H:
-        lines.append(f"\n== after {h}h (raw price change, before any costs)")
+        lines.append(f"\n== about {h}h after first sighting (raw price change, before any costs)")
+        late = 0
         for label, want in (("PASSED", True), ("REJECTED", False)):
-            ch, rugged, n = [], 0, 0
+            ch, rugged, rug_n, n, el = [], 0, 0, 0, []
             for m, e in entries.items():
                 o = outs.get((m, h))
                 if e["pass"] != want or not o:
                     continue
+                hrs = (o["ts"] - e["ts"]) / 3600
+                if hrs > LATE * h:
+                    late += 1
+                    continue
                 n += 1
+                el.append(hrs)
                 ch.append((o["price"] / e["price"] - 1) * 100 if e["price"] else 0.0)
-                rugged += o["gone"] or o["liq"] <= e["liq"] * (1 - RUG_LIQ_DROP)
+                if e["liq"] > 0:                       # a rug is only measurable if there was liquidity
+                    rug_n += 1
+                    rugged += o["gone"] or o["liq"] <= e["liq"] * (1 - RUG_LIQ_DROP)
             if not n:
-                lines.append(f"{label:9s} n=0 (no outcomes yet)")
+                lines.append(f"{label:9s} n=0")
                 continue
             lines.append(f"{label:9s} n={n:3d} | median {statistics.median(ch):+7.1f}% | mean {statistics.mean(ch):+8.1f}% "
-                         f"| up {sum(c > 0 for c in ch) / n:4.0%} | rugged/gone {rugged / n:4.0%}")
+                         f"| up {sum(c > 0 for c in ch) / n:4.0%} | rugged/gone {rugged}/{rug_n} "
+                         f"| measured after {statistics.median(el):.1f}h")
+        if late:
+            lines.append(f"({late} outcomes excluded: measured later than {LATE}x the horizon because runs were sparse)")
     lines.append("\nSmall samples mean nothing. Wait for 100+ tokens per group before trusting any number.")
     return "\n".join(lines)
 

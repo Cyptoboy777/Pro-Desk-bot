@@ -142,7 +142,7 @@ class HeadOfDesk:
         self.stats["scanned"] += len(tokens)
         for t, move in self.scout.scan(tokens):
             self.stats["candidates"] += 1
-            self._ev(tick, "SCAN", t.symbol, f"spike +{move:.0%} · vol {t.volume_24h / t.liquidity_usd:.1f}x")
+            self._ev(tick, "SCAN", t.symbol, f"spike +{move:.0%} · vol {t.volume_24h / max(t.liquidity_usd, 1):.1f}x")
             if len(b.positions) >= c.max_open:
                 break
             if move > c.max_chase or self.cool_until.get(t.mint, -1) >= tick:
@@ -158,7 +158,7 @@ class HeadOfDesk:
                 self.stats["rejected"] += 1
                 self._ev(tick, "FILTERED", t.symbol, "; ".join(v.reasons) or "no size available")
                 continue
-            reason = f"vol {t.volume_24h / t.liquidity_usd:.1f}x + LP burned {t.lp_burned_pct:.0f}%"
+            reason = f"vol {t.volume_24h / max(t.liquidity_usd, 1):.1f}x + LP burned {t.lp_burned_pct:.0f}%"
             pos = b.buy(t, usd, tick, reason)
             if pos:
                 self.stats["executed"] += 1

@@ -14,6 +14,8 @@ class ScoutAgent:
     def scan(self, tokens):
         picks = []
         for t in tokens:
+            if t.liquidity_usd <= 0 or t.price <= 0:      # nothing to trade against
+                continue
             h = self.hist[t.mint]
             h.append(t.price)
             if len(h) <= self.lookback:

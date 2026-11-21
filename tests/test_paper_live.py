@@ -55,3 +55,10 @@ def test_morning_table_lists_trades_with_timestamps():
         evs += e
     t = pl.morning_table(st, evs)
     assert t.startswith("# Paper desk report") and "| enter |" in t and "| exit |" in t and "2027-" in t
+
+
+def test_zero_liquidity_token_does_not_crash_the_desk():
+    st = pl.new_state()
+    for i, p in enumerate([1.0, 1.1, 1.2, 1.3, 1.4]):
+        st, _ = pl.run_once(json.loads(json.dumps(st)), lambda m, p=p: mk(p, liq=0), lambda m: dict(SAFE), ["AAA"])
+    assert st["tick"] == 5 and not st["positions"]
