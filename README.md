@@ -75,3 +75,5 @@ Send a Solana token address (paste it, addresses are case-sensitive) or `/check 
 ## Work with me
 
 I build read-only crypto analytics, risk checkers, Telegram bots and dashboards, tested and documented like this project. Message me through my GitHub profile: [@Cyptoboy777](https://github.com/Cyptoboy777).
+
+See [SAFETY.md](SAFETY.md) for the rules the code enforces (no execution code, hostile token text, fail closed).

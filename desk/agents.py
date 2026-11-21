@@ -54,9 +54,9 @@ class RiskAgent:
 class ExitAgent:
     """Stop-loss, trailing stop, rug trigger (liquidity collapse), max hold."""
 
-    def __init__(self, stop=0.15, trail_after=0.20, trail=0.15, rug_liq_drop=0.30, max_hold=60):
-        self.stop, self.trail_after, self.trail, self.rug, self.max_hold = \
-            stop, trail_after, trail, rug_liq_drop, max_hold
+    def __init__(self, stop=0.15, trail_after=0.20, trail=0.15, rug_liq_drop=0.30, max_hold=60, take_profit=0.0):
+        self.stop, self.trail_after, self.trail, self.rug, self.max_hold, self.tp = \
+            stop, trail_after, trail, rug_liq_drop, max_hold, take_profit
 
     def decide(self, pos, t, tick):
         pos.peak_price = max(pos.peak_price, t.price)
@@ -64,6 +64,8 @@ class ExitAgent:
             return "RUG: liquidity dropped"
         if t.price <= pos.entry_price * (1 - self.stop):
             return "stop-loss"
+        if self.tp and t.price >= pos.entry_price * (1 + self.tp):
+            return "take-profit"
         if pos.peak_price >= pos.entry_price * (1 + self.trail_after) and t.price <= pos.peak_price * (1 - self.trail):
             return "trailing stop"
         if tick - pos.opened_tick >= self.max_hold:

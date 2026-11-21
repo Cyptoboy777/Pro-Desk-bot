@@ -44,6 +44,7 @@ jobs:
           python3 /tmp/app/collector.py score   --data data/snapshots.jsonl || true
           python3 /tmp/app/collector.py report  --data data/snapshots.jsonl > data/report.txt
           python3 /tmp/app/paper_live.py run > data/paper_report.txt || true
+          python3 /tmp/app/paper_live.py report --table > data/morning_report.md || true
       - name: Publish data (append-only, no force push)
         run: |
           git config user.name "github-actions[bot]"

@@ -14,6 +14,12 @@ DEX = "https://api.dexscreener.com"
 RUG = "https://api.rugcheck.xyz/v1"
 
 
+def clean_text(s, n=20):
+    """Token names/symbols are attacker-controlled. Keep printable ASCII-ish text only, short."""
+    s = "".join(ch for ch in str(s) if ch.isprintable() and ch not in "<>`\\[]{}|")
+    return (s.strip() or "?")[:n]
+
+
 def _get(url, timeout=15):
     req = urllib.request.Request(url, headers={"accept": "application/json", "user-agent": "desk-app/0.1"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
@@ -35,7 +41,7 @@ def parse_market(pairs, mint):
         if best is None or liq > best["liquidity_usd"]:
             created = p.get("pairCreatedAt")
             best = {
-                "symbol": (p.get("baseToken") or {}).get("symbol", "?"),
+                "symbol": clean_text((p.get("baseToken") or {}).get("symbol", "?")),
                 "price": float(p.get("priceUsd") or 0),
                 "liquidity_usd": liq,
                 "volume_24h": float((p.get("volume") or {}).get("h24") or 0),

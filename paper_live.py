@@ -10,8 +10,10 @@ Honest limits: polling every ~30 min cannot honour fast stops (fills happen at t
 at the poll, like a slow bot would get), and DexScreener prices are not executable quotes.
 """
 import argparse
+import datetime
 import json
 import os
+import time
 from collections import deque
 from dataclasses import asdict
 
@@ -20,7 +22,7 @@ from desk.broker import PaperBroker
 from desk.head import HeadOfDesk, Config
 from desk.models import Token, Position
 
-LIVE_CFG = Config(guard_n=3, guard_window=8, guard_pause=8, cooldown=4, edge_n=8, max_hold=12)
+LIVE_CFG = Config(guard_n=3, guard_window=8, guard_pause=8, cooldown=4, edge_n=8, max_hold=12, take_profit=0.3)
 MAX_WATCH, WATCH_TICKS, SAFETY_TTL = 40, 12, 12
 STATE, EVENTS = "data/paper_state.json", "data/paper_events.jsonl"
 
@@ -45,7 +47,7 @@ def _restore(st):
     return b, h
 
 
-def run_once(st, fetch_market, fetch_safety, new_mints):
+def run_once(st, fetch_market, fetch_safety, new_mints, now=None):
     """Advance the paper desk by one tick. Returns (state, events)."""
     tick = st["tick"] + 1
     for m in new_mints:
@@ -79,7 +81,20 @@ def run_once(st, fetch_market, fetch_safety, new_mints):
               halted=h.halted, stats=h.stats, needs_human=h.needs_human)
     st["safety"] = {m: v for m, v in st["safety"].items() if m in st["watch"]}
     st["curve"].append(round(b.equity(prices), 2))
-    return st, [e for e in h.events if e["kind"] != "SCAN"]
+    stamp = datetime.datetime.fromtimestamp(time.time() if now is None else now, datetime.timezone.utc).strftime("%Y-%m-%d %H:%M")
+    return st, [{**e, "ts": stamp} for e in h.events if e["kind"] != "SCAN"]
+
+
+def morning_table(st, events, last_n=40):
+    """Markdown report: summary + every decision in a table (newest last)."""
+    rows = [e for e in events if e["kind"] in ("ENTER", "EXIT", "HALT", "PAUSE")][-last_n:]
+    out = [f"# Paper desk report", "", report(st, events), "", "| time (UTC) | action | token | size / pnl | reason |", "|---|---|---|---|---|"]
+    for e in rows:
+        amt = f"{e['size_pct']}% of equity" if e["kind"] == "ENTER" else (f"{e['pnl']:+.2f} USD" if "pnl" in e else "")
+        out.append(f"| {e.get('ts', '')} | {e['kind'].lower()} | {e['sym']} | {amt} | {e['reason']} |")
+    if not rows:
+        out.append("| - | no trades yet | - | - | - |")
+    return "\n".join(out) + "\n"
 
 
 def load_state(path=STATE):
@@ -108,9 +123,9 @@ def report(st, events):
 
 
 if __name__ == "__main__":
-    import time
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["run", "report"])
+    ap.add_argument("--table", action="store_true", help="markdown morning report")
     a = ap.parse_args()
     if a.cmd == "run":
         pol = lambda fn: (lambda m: (time.sleep(0.5), fn(m))[1])
@@ -119,4 +134,4 @@ if __name__ == "__main__":
         print(report(st, ev))
     else:
         evs = [json.loads(x) for x in open(EVENTS)] if os.path.exists(EVENTS) else []
-        print(report(load_state(), evs))
+        print(morning_table(load_state(), evs) if a.table else report(load_state(), evs))

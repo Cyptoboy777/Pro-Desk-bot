@@ -45,3 +45,13 @@ def test_liquidity_collapse_triggers_rug_exit():
 def test_report_runs():
     st, evs = drive([1.0, 1.06, 1.12, 1.19, 1.25, None])
     assert "equity" in pl.report(st, evs)
+
+
+def test_morning_table_lists_trades_with_timestamps():
+    st, evs = pl.new_state(), []
+    for i, p in enumerate([1.0, 1.06, 1.12, 1.19, 1.25, None]):
+        fm = (lambda m, p=p: None if p is None else mk(p))
+        st, e = pl.run_once(json.loads(json.dumps(st)), fm, lambda m: dict(SAFE), ["AAA"], now=1_800_000_000 + i * 1800)
+        evs += e
+    t = pl.morning_table(st, evs)
+    assert t.startswith("# Paper desk report") and "| enter |" in t and "| exit |" in t and "2027-" in t

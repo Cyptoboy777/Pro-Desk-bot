@@ -62,6 +62,7 @@ class Config:
     min_lp: float = 90
     # exits
     stop: float = 0.15
+    take_profit: float = 0.0         # 0 = off; e.g. 0.5 closes at +50%
     max_hold: int = 60
 
 
@@ -89,7 +90,7 @@ class HeadOfDesk:
         self.broker = broker
         self.scout = ScoutAgent()
         self.risk = RiskAgent(min_liq=c.min_liq, max_top10=c.max_top10, min_lp_burned=c.min_lp, min_age=c.min_age)
-        self.exit = ExitAgent(stop=c.stop, max_hold=c.max_hold)
+        self.exit = ExitAgent(stop=c.stop, max_hold=c.max_hold, take_profit=c.take_profit)
         self.sizer = SizerAgent(c)
         self.halted = False
         self.stats = {"scanned": 0, "candidates": 0, "rejected": 0, "skipped": 0, "executed": 0, "rug_exits": 0}
