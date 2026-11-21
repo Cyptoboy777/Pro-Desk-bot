@@ -1,1 +1,4 @@
 {"t":4,"kind":"ENTER","sym":"ZOL","reason":"vol 14.5x + LP burned 100%","size_pct":2.5,"slip":0.51}
+{"t":5,"kind":"EXIT","sym":"ZOL","reason":"stop-loss","pnl":-8.85,"ts":"2026-11-21 19:39"}
+{"t":5,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $15,381","ts":"2026-11-21 19:39"}
+{"t":5,"kind":"SKIP","sym":"ZOL","reason":"cooldown","ts":"2026-11-21 19:39"}
