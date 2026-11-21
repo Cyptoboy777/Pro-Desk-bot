@@ -294,3 +294,74 @@
 {"kind":"outcome","ts":1795246491.7708068,"mint":"5kLah7PHaD6A4RmU2tdF7Tv3zXHGrkvxgfFtKUfApump","horizon_h":6,"price":1.385e-06,"liq":1544.24,"gone":false}
 {"kind":"outcome","ts":1795246491.7708068,"mint":"5kqi4kDq56H9UfHq14jXtmy189zpyxaYdXCQ4qHvDtHW","horizon_h":1,"price":0.0008455,"liq":59151.57,"gone":false}
 {"kind":"outcome","ts":1795246491.7708068,"mint":"5kqi4kDq56H9UfHq14jXtmy189zpyxaYdXCQ4qHvDtHW","horizon_h":6,"price":0.0008455,"liq":59151.57,"gone":false}
+{"kind":"entry","ts":1795275920.3073049,"mint":"BUT4YZEesNZzGLZdLtvqSJWR7E9qXGYy7cFPAfz6pump","symbol":"PI","price":4.03e-05,"liq":16462.05,"vol24":419739.55,"age_min":69.1,"top10":22.63,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $16,462"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"EU9RwR3SHT9tvszyzWPPpxFcgDMgULvz5S8NEz6Mpump","symbol":"FIH","price":5.874e-05,"liq":17522.22,"vol24":289033.67,"age_min":22.6,"top10":18.47,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $17,522"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"6xpkxC44h8XZaZDd1GHumL9gUNWpANgm32PrpaQVpump","symbol":"HODL","price":0.0001768,"liq":30376.46,"vol24":132962.69,"age_min":790498.3,"top10":9.56,"lp":100.0,"flags":[],"pass":true,"reasons":[]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"dkpuQdjegjU8zcwYrBzYrLW11wvtjwonBsQhjLApump","symbol":"RIEMANN","price":0.0005981,"liq":54842.86,"vol24":611718.6,"age_min":705.7,"top10":2.73,"lp":100.0,"flags":[],"pass":true,"reasons":[]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"NGK4MVhgG1Vtpri7vCoregDMd1xotEJMhsWRfg7pump","symbol":"Milky","price":3.053e-06,"liq":2659.87,"vol24":84615.78,"age_min":89.7,"top10":17.84,"lp":100.0,"flags":["RugCheck danger: Low Liquidity"],"pass":false,"reasons":["liquidity $2,660","RugCheck danger: Low Liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"3b7WvfRxRaoMuq4j6JWJzrL5mym3Km3QzfX5dqCopump","symbol":"Bigfoot","price":7.136e-05,"liq":19033.38,"vol24":728524.03,"age_min":115.6,"top10":22.2,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $19,033"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"AniTsLxVLrBxVrFubVDbMb1g657m6g57hBG18819pump","symbol":"TRUMPCOIN","price":1.87e-06,"liq":1821.45,"vol24":93860.46,"age_min":129.5,"top10":7.53,"lp":100.0,"flags":["RugCheck danger: Low Liquidity"],"pass":false,"reasons":["liquidity $1,821","RugCheck danger: Low Liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"3YT6Cw1DSrtbtp7MEJpA41KF5cBpdDPS6gYRaAHjpump","symbol":"Trumplon","price":2.03e-06,"liq":0.0,"vol24":6340.54,"age_min":0.0,"top10":0.91,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $0","position too large vs liquidity","too new"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"EALjJGCnm5JUFW8LNFdgsn4L5YCkzxYkFYioV2zPpump","symbol":"DPRK","price":1.372e-06,"liq":1443.06,"vol24":223291.43,"age_min":146.1,"top10":0.0,"lp":100.0,"flags":["RugCheck danger: Low Liquidity"],"pass":false,"reasons":["liquidity $1,443","RugCheck danger: Low Liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"DfwBYUeTQQQx6HErXAsMDx5GR6GnsGYEEimtxn7Cpump","symbol":"clok","price":4.723e-06,"liq":0.0,"vol24":25802.27,"age_min":286.0,"top10":22.14,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $0","position too large vs liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"4NPAMuFZYRo8bHksCiuuXjJCH4f6nXN66go1MvFVpump","symbol":"SUB","price":2.108e-06,"liq":0.0,"vol24":95830.87,"age_min":163.9,"top10":1.86,"lp":100.0,"flags":["RugCheck danger: Low Liquidity"],"pass":false,"reasons":["liquidity $0","position too large vs liquidity","RugCheck danger: Low Liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"8LiYzFsD2WySHR26ZAZdZkYZHgEvjdE9SrSfchhwpump","symbol":"DPRK","price":1.751e-06,"liq":1723.34,"vol24":54620.06,"age_min":160.1,"top10":9.96,"lp":100.0,"flags":["RugCheck danger: Low Liquidity"],"pass":false,"reasons":["liquidity $1,723","RugCheck danger: Low Liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"naSwzowCDMeccFcZ3UGLQUhY9S3hRUJrtZw2vWFvout","symbol":"OUTCRY","price":1.603e-05,"liq":0.0,"vol24":0.04,"age_min":1412.5,"top10":21.0,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $0","position too large vs liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"861LN4tg7QKNtKFZT4Ms7nF4BuxLpRa7QN1DVBTApump","symbol":"KEVIN","price":4.253e-06,"liq":0.0,"vol24":31118.39,"age_min":230.6,"top10":13.9,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $0","position too large vs liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"3akirsQnDij9R6h4fZFxdxrYUjQy32JNWBv4FCNBpump","symbol":"FTL","price":2.905e-05,"liq":10926.76,"vol24":124988.15,"age_min":127.7,"top10":24.01,"lp":100.0,"flags":["RugCheck danger: Creator history of rugged tokens"],"pass":false,"reasons":["liquidity $10,927","RugCheck danger: Creator history of rugged tokens"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"BSSkzYSfpYCiZt39CqkAYeTwWmuttdHCAg48V6GZpump","symbol":"GloryCoin","price":5.326e-06,"liq":0.0,"vol24":1792.3,"age_min":40376.5,"top10":41.19,"lp":100.0,"flags":[],"pass":false,"reasons":["top10 holders 41%","liquidity $0","position too large vs liquidity"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"EK2tRRD5jqNUxohdMjbjnJ5Q3t9TYGBkZVjtMceDpump","symbol":"Emily","price":5.129e-05,"liq":16205.67,"vol24":960938.77,"age_min":211.9,"top10":22.28,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $16,206"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"23SaCrvoAZeUd9gPikpqEbdnP6XsSxnczJrDwFPrUgat","symbol":"Emily","price":7.37e-06,"liq":4825.86,"vol24":104522.93,"age_min":195.3,"top10":27.8,"lp":100.0,"flags":[],"pass":false,"reasons":["liquidity $4,826"]}
+{"kind":"entry","ts":1795275920.3073049,"mint":"7VtNjQu7GGPX5A1CowMxJjfFsPkZsuJ3AoSQdzHTpump","symbol":"Lazarus","price":2.637e-06,"liq":2502.85,"vol24":342644.7,"age_min":202.4,"top10":14.4,"lp":100.0,"flags":["RugCheck danger: Low Liquidity"],"pass":false,"reasons":["liquidity $2,503","RugCheck danger: Low Liquidity"]}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"9fdXUWzmCXG5awmc11FNPWDthTngcqU9kd1whEPPXiJ6","horizon_h":1,"price":1.97e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"9fdXUWzmCXG5awmc11FNPWDthTngcqU9kd1whEPPXiJ6","horizon_h":6,"price":1.97e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"H9yG3dirMGTpV7hPiHavXYVbX7gzF5MnrvrboFTopump","horizon_h":1,"price":2.87e-06,"liq":2631.4,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"H9yG3dirMGTpV7hPiHavXYVbX7gzF5MnrvrboFTopump","horizon_h":6,"price":2.87e-06,"liq":2631.4,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2ftiRezhjyU7x9qp4eneJPKWfUqcbcsdSLJDS6vgpump","horizon_h":1,"price":2.113e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2ftiRezhjyU7x9qp4eneJPKWfUqcbcsdSLJDS6vgpump","horizon_h":6,"price":2.113e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"F5kvpUYbbMsvk7zLtjqu3oiRyrmbCntBFFZHiWuapump","horizon_h":1,"price":2.102e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"F5kvpUYbbMsvk7zLtjqu3oiRyrmbCntBFFZHiWuapump","horizon_h":6,"price":2.102e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"gobFtS1LFcHjwneDGdc6NVzjGifKYv4wLN4yJ3qDKe2","horizon_h":1,"price":1.951e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"gobFtS1LFcHjwneDGdc6NVzjGifKYv4wLN4yJ3qDKe2","horizon_h":6,"price":1.951e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"EH4h26qqhUhDpkU3K5AmPJT6Kci9pD6LrUjtXYd1pump","horizon_h":1,"price":4.378e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"EH4h26qqhUhDpkU3K5AmPJT6Kci9pD6LrUjtXYd1pump","horizon_h":6,"price":4.378e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"6DkJawEZE7m1tnXi7WqdhoKrANfuMRPQwirXLyGKpump","horizon_h":1,"price":1.787e-06,"liq":1769.49,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"6DkJawEZE7m1tnXi7WqdhoKrANfuMRPQwirXLyGKpump","horizon_h":6,"price":1.787e-06,"liq":1769.49,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2GiS8L6jzveE7cQ61bjGN6wVn5MS9FcBjarSAMFppump","horizon_h":1,"price":1.457e-06,"liq":1528.88,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2GiS8L6jzveE7cQ61bjGN6wVn5MS9FcBjarSAMFppump","horizon_h":6,"price":1.457e-06,"liq":1528.88,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"3kQUtCkr5UbSQ3hZBoWWkNrD4EkbL8TycJU2bGMZpump","horizon_h":1,"price":4.259e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"3kQUtCkr5UbSQ3hZBoWWkNrD4EkbL8TycJU2bGMZpump","horizon_h":6,"price":4.259e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"3kt81ccXwen1uCGVDmVRPTaVNVGmJ4W453vZweFQpump","horizon_h":1,"price":3.688e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"3kt81ccXwen1uCGVDmVRPTaVNVGmJ4W453vZweFQpump","horizon_h":6,"price":3.688e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"B3y5kmGACtQG2aD6ApgQVaP2hJhDz9K1t3WUiX1Hpump","horizon_h":1,"price":4.729e-06,"liq":3610.88,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"B3y5kmGACtQG2aD6ApgQVaP2hJhDz9K1t3WUiX1Hpump","horizon_h":6,"price":4.729e-06,"liq":3610.88,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"GwSkMEy1pRgNuMSdrApdX6DaexBopgLm5KU32VP9pump","horizon_h":1,"price":4.005e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"GwSkMEy1pRgNuMSdrApdX6DaexBopgLm5KU32VP9pump","horizon_h":6,"price":4.005e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"FJKt1LxbWBpTRt9BaDEB6Wr2qL5LZzjFF5sx8rXnpump","horizon_h":1,"price":0.003356,"liq":132450.41,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"FJKt1LxbWBpTRt9BaDEB6Wr2qL5LZzjFF5sx8rXnpump","horizon_h":6,"price":0.003356,"liq":132450.41,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"H6AoDjpzE8pj7KdsqRKbtWsJk7jYAVEcrTWGLVQTpump","horizon_h":1,"price":1.586e-06,"liq":1574.79,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"H6AoDjpzE8pj7KdsqRKbtWsJk7jYAVEcrTWGLVQTpump","horizon_h":6,"price":1.586e-06,"liq":1574.79,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"3CWkDb26djytFU6tMwPNuqLNu2TJm5c9PcfLha5tpump","horizon_h":1,"price":2.089e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"3CWkDb26djytFU6tMwPNuqLNu2TJm5c9PcfLha5tpump","horizon_h":6,"price":2.089e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"7M7yAQmtvo9jJ6TgrMPEj5eXbxFiJCJjqWfQyMQrpump","horizon_h":1,"price":1.256e-06,"liq":1297.44,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"7M7yAQmtvo9jJ6TgrMPEj5eXbxFiJCJjqWfQyMQrpump","horizon_h":6,"price":1.256e-06,"liq":1297.44,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"FQNz7BKQejsQR3aFyCY746Km2smesUS9DWYsU9nopump","horizon_h":1,"price":1.721e-06,"liq":1875.75,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"FQNz7BKQejsQR3aFyCY746Km2smesUS9DWYsU9nopump","horizon_h":6,"price":1.721e-06,"liq":1875.75,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"9cfCUuAMqvWk9eDwTuJtFyqzJ6FK5tjFcVHkkvJQcoKU","horizon_h":1,"price":2.08e-06,"liq":1985.38,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"9cfCUuAMqvWk9eDwTuJtFyqzJ6FK5tjFcVHkkvJQcoKU","horizon_h":6,"price":2.08e-06,"liq":1985.38,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2TngN4B7XaoGSKsYvttq5bFAdM4Z4xCSnuyRwGiFpump","horizon_h":1,"price":0.001847,"liq":99214.23,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2TngN4B7XaoGSKsYvttq5bFAdM4Z4xCSnuyRwGiFpump","horizon_h":6,"price":0.001847,"liq":99214.23,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"GKFSuSc9nYioKCjgUPFy2J5K6K2Ur7ZnpXH9XEiQH63R","horizon_h":1,"price":0.0001787,"liq":31326.53,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"GKFSuSc9nYioKCjgUPFy2J5K6K2Ur7ZnpXH9XEiQH63R","horizon_h":6,"price":0.0001787,"liq":31326.53,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2S4e8Lv5kMqzXumeWrXMMwANUVtFLazeezUorfG9pump","horizon_h":1,"price":1.294e-06,"liq":1359.54,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"2S4e8Lv5kMqzXumeWrXMMwANUVtFLazeezUorfG9pump","horizon_h":6,"price":1.294e-06,"liq":1359.54,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"C2nrwWDQ72yjtLiCCpJDBpzv1Se5eniAVqadTvAdpump","horizon_h":1,"price":1.413e-06,"liq":1563.21,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"C2nrwWDQ72yjtLiCCpJDBpzv1Se5eniAVqadTvAdpump","horizon_h":6,"price":1.413e-06,"liq":1563.21,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"8Vf84Hy21ZDU2t8S89JQVni5QaBXf21xEnv5yizXpump","horizon_h":1,"price":1.402e-06,"liq":1528.48,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"8Vf84Hy21ZDU2t8S89JQVni5QaBXf21xEnv5yizXpump","horizon_h":6,"price":1.402e-06,"liq":1528.48,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"8fWsV1u1SYcN358tSA6dyTjfpmaQTziftcHwKBFSpump","horizon_h":1,"price":2.543e-05,"liq":14445.37,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"8fWsV1u1SYcN358tSA6dyTjfpmaQTziftcHwKBFSpump","horizon_h":6,"price":2.543e-05,"liq":14445.37,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"9Eu7WS2WqzQ4jvW4zXH7PaxDH8rpNDUrLuHKrUbbpump","horizon_h":1,"price":4.791e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"9Eu7WS2WqzQ4jvW4zXH7PaxDH8rpNDUrLuHKrUbbpump","horizon_h":6,"price":4.791e-06,"liq":0.0,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"DbMPw1vSRtE93EK5Sqw23xHuDtkD569RpqANLvdqpump","horizon_h":1,"price":1.511e-05,"liq":8089.71,"gone":false}
+{"kind":"outcome","ts":1795275938.3256102,"mint":"DbMPw1vSRtE93EK5Sqw23xHuDtkD569RpqANLvdqpump","horizon_h":6,"price":1.511e-05,"liq":8089.71,"gone":false}
