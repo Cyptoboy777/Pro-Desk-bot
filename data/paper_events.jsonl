@@ -2,3 +2,7 @@
 {"t":5,"kind":"EXIT","sym":"ZOL","reason":"stop-loss","pnl":-8.85,"ts":"2026-11-21 19:39"}
 {"t":5,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $15,381","ts":"2026-11-21 19:39"}
 {"t":5,"kind":"SKIP","sym":"ZOL","reason":"cooldown","ts":"2026-11-21 19:39"}
+{"t":6,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $14,134","ts":"2026-11-21 21:19"}
+{"t":6,"kind":"FILTERED","sym":"Gino","reason":"liquidity $3,485","ts":"2026-11-21 21:19"}
+{"t":6,"kind":"FILTERED","sym":"Meobao","reason":"liquidity $3,718","ts":"2026-11-21 21:19"}
+{"t":6,"kind":"FILTERED","sym":"BiFi","reason":"LP burned only 0%; top10 holders 47%; liquidity $3,322; RugCheck danger: Large Amount of LP Unlocked; RugCheck danger: Low Liquidity","ts":"2026-11-21 21:19"}
