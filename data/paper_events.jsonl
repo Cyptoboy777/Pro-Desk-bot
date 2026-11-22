@@ -11,3 +11,4 @@
 {"t":7,"kind":"FILTERED","sym":"WCAT","reason":"liquidity $5,132","ts":"2026-11-22 01:29"}
 {"t":7,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $13,845","ts":"2026-11-22 01:29"}
 {"t":9,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $14,661","ts":"2026-11-22 16:33"}
+{"t":10,"kind":"FILTERED","sym":"BiFi","reason":"LP burned only 0%; top10 holders 47%; liquidity $2,833; RugCheck danger: Large Amount of LP Unlocked; RugCheck danger: Low Liquidity","ts":"2026-11-22 22:16"}
