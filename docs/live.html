@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desk Terminal Live</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+/* Live paper desk: reads the append-only data the scheduled job commits to the live-data branch. No server, no keys. */
+:root { --bg:#141318; --panel:#1c1b21; --line:#393741; --text:#ebe9ee; --muted:#8f8c98; --green:#4ade80; --red:#ff6b6b; --yellow:#f3da4f; --purple:#9a8cff;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace; color-scheme: dark; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin:0; background:var(--bg); color:var(--text); font-family:var(--mono); font-size:13px; line-height:1.45;
+  padding-block:16px; padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px)); }
+.wrap { max-width:1000px; margin:0 auto; display:grid; gap:14px; }
+h1 { font-size:24px; margin:0; letter-spacing:-.01em; } h1 em { font-style:normal; color:var(--purple); }
+.sub { color:var(--muted); } a { color:var(--purple); }
+.badge { border:1px dashed var(--green); color:var(--green); border-radius:5px; padding:1px 7px; font-size:10px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; }
+.panel { border:1px solid var(--line); border-radius:10px; background:var(--panel); padding:12px 14px; min-width:0; }
+.cap { color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; }
+.kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.kpi .v { font-size:24px; font-weight:700; font-variant-numeric:tabular-nums; } .kpi .l { color:var(--muted); font-size:11px; letter-spacing:.06em; }
+.pos { color:var(--green); } .neg { color:var(--red); } .warn { color:var(--yellow); }
+.scroll { overflow-x:auto; } table { border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }
+th,td { text-align:left; padding:6px 10px; border-top:1px solid var(--line); white-space:nowrap; } th { color:var(--muted); font-weight:500; border-top:0; }
+td.r, th.r { text-align:right; } pre { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font:inherit; }
+svg { width:100%; height:110px; display:block; }
+#status { min-height:1.4em; }
+@media (max-width:640px) { .kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } h1 { font-size:21px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Desk <em>Terminal</em> Live <span class="badge">paper</span></h1>
+    <div class="sub">Real tokens and prices, simulated fills. No wallet, no orders. <a href="./">Simulated-market dashboard</a></div>
+    <div id="status" class="warn">loading latest run…</div>
+  </div>
+  <div class="panel kpis">
+    <div class="kpi"><div class="v" id="eq">-</div><div class="l">equity</div></div>
+    <div class="kpi"><div class="v" id="ret">-</div><div class="l">return</div></div>
+    <div class="kpi"><div class="v" id="ticks">-</div><div class="l">runs so far</div></div>
+    <div class="kpi"><div class="v" id="open">-</div><div class="l">open positions</div></div>
+  </div>
+  <div class="panel"><div class="cap"><span>Equity per run</span><span id="n"></span></div><svg id="curve" viewBox="0 0 600 110" preserveAspectRatio="none" role="img" aria-label="Equity curve"></svg></div>
+  <div class="panel"><div class="cap"><span>Open positions</span></div><div class="scroll"><table id="pos"></table></div></div>
+  <div class="panel"><div class="cap"><span>Recent decisions</span><span>every one has a reason</span></div><div class="scroll"><table id="ev"></table></div></div>
+  <div class="panel"><div class="cap"><span>Forward test: did the Risk agent's passes do better?</span></div><pre id="fwd">-</pre></div>
+  <div class="panel"><div class="cap"><span>Insights</span></div><pre id="ins">-</pre></div>
+  <div class="sub">Paper results. Nothing here is financial advice, and small samples mean nothing. Source and rules: <a href="https://github.com/Cyptoboy777/Pro-Desk-bot">Pro-Desk-bot</a>.</div>
+</div>
+<script>
+const BASE = "https://raw.githubusercontent.com/Cyptoboy777/Pro-Desk-bot/live-data/data/";
+const $ = id => document.getElementById(id);
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+async function get(name, json) {
+  const r = await fetch(BASE + name + "?t=" + Date.now(), { cache: "no-store" });
+  if (!r.ok) throw new Error(name + " " + r.status);
+  return json ? r.json() : r.text();
+}
+function cell(tr, text, cls, tag) { const c = document.createElement(tag || "td"); c.textContent = text; if (cls) c.className = cls; tr.appendChild(c); }
+function table(el, head, rows) {
+  el.textContent = "";
+  const h = document.createElement("tr"); head.forEach(x => cell(h, x[0], x[1], "th")); el.appendChild(h);
+  if (!rows.length) { const t = document.createElement("tr"); cell(t, "none yet"); el.appendChild(t); }
+  rows.forEach(r => { const t = document.createElement("tr"); r.forEach(x => cell(t, x[0], x[1])); el.appendChild(t); });
+}
+function curve(vals, start) {
+  const svg = $("curve"), W = 600, H = 110;
+  if (vals.length < 2) { svg.innerHTML = ""; return; }
+  const mn = Math.min(start, ...vals), mx = Math.max(start, ...vals), pad = (mx - mn) * 0.15 || 1;
+  const X = i => i / (vals.length - 1) * W, Y = v => H - (v - (mn - pad)) / (mx - mn + 2 * pad) * H;
+  const col = vals[vals.length - 1] >= start ? "#4ade80" : "#ff6b6b";
+  svg.innerHTML = `<line x1="0" x2="${W}" y1="${Y(start)}" y2="${Y(start)}" stroke="#4a4753" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>` +
+    `<polyline fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" points="${vals.map((v, i) => X(i).toFixed(1) + "," + Y(v).toFixed(1)).join(" ")}"/>`;
+}
+async function main() {
+  try {
+    const [st, evText] = await Promise.all([get("paper_state.json", true), get("paper_events.jsonl").catch(() => "")]);
+    const eq = st.curve.length ? st.curve[st.curve.length - 1] : st.start, rt = (eq / st.start - 1) * 100;
+    $("eq").textContent = money(eq); $("ret").textContent = (rt >= 0 ? "+" : "") + rt.toFixed(2) + "%"; $("ret").className = "v " + (rt >= 0 ? "pos" : "neg");
+    $("ticks").textContent = st.tick; $("open").textContent = Object.keys(st.positions).length; $("n").textContent = st.curve.length + " points";
+    curve(st.curve, st.start);
+    table($("pos"), [["token"], ["entry price", "r"], ["cost", "r"], ["opened at run", "r"]],
+      Object.values(st.positions).map(p => [[p.symbol], [p.entry_price.toPrecision(4), "r"], [money(p.cost_usd), "r"], ["#" + p.opened_tick, "r"]]));
+    const evs = evText.split("\n").filter(Boolean).map(l => JSON.parse(l)).filter(e => ["ENTER", "EXIT", "HALT", "PAUSE"].includes(e.kind)).slice(-15).reverse();
+    table($("ev"), [["time (UTC)"], ["action"], ["token"], ["size / pnl", "r"], ["reason"]],
+      evs.map(e => [[e.ts || "-"], [e.kind.toLowerCase()], [e.sym], [e.kind === "ENTER" ? e.size_pct + "% of equity" : e.pnl !== undefined ? (e.pnl >= 0 ? "+" : "") + money(e.pnl) : "", "r " + (e.pnl > 0 ? "pos" : e.pnl < 0 ? "neg" : "")], [e.reason]]));
+    $("status").textContent = "up to date with the latest scheduled run (GitHub may cache this for a few minutes)"; $("status").className = "sub";
+  } catch (err) {
+    $("status").textContent = "could not load live data yet (" + err.message + "). The first scheduled run creates it.";
+  }
+  get("report.txt").then(t => { $("fwd").textContent = t; }).catch(() => { $("fwd").textContent = "not available yet"; });
+  get("insights.md").then(t => { $("ins").textContent = t; }).catch(() => { $("ins").textContent = "not available yet"; });
+}
+main();
+</script>
+</body>
+</html>

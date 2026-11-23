@@ -20,6 +20,9 @@ A paper-trading desk of six rule-based agents for new Solana tokens: **Scanner**
 | `run_desk.py` | One simulated night, or `--seeds N` for a distribution |
 | `alerts.py` | Live **read-only** alerts from DexScreener + RugCheck (run `--probe` first, see below) |
 | `export_runs.py`, `dashboard_template.html` | Builds the static dashboard from real paper runs |
+| `insights.py` | Which recorded features go with bad outcomes, with 95% intervals; `--since DATE` tests a hypothesis on new data only |
+| `notify.py` | Optional Telegram push for paper decisions (needs two repo secrets) |
+| `docs/live.html` | Live dashboard: reads the data the scheduled job publishes |
 | `paper_live.py` | Live paper trader on real prices, state persisted between runs |
 | `collector.py` | Forward test: record real new tokens, score them after 1h / 6h, compare passed vs rejected |
 | `bot/telegram_bot.py` | Read-only Telegram bot: send a token address, get the Risk agent's verdict |
@@ -77,3 +80,30 @@ Send a Solana token address (paste it, addresses are case-sensitive) or `/check 
 I build read-only crypto analytics, risk checkers, Telegram bots and dashboards, tested and documented like this project. Message me through my GitHub profile: [@Cyptoboy777](https://github.com/Cyptoboy777).
 
 See [SAFETY.md](SAFETY.md) for the rules the code enforces (no execution code, hostile token text, fail closed).
+
+## Feature map (from the 8-agent desk idea, with the unsafe or unproven parts left out)
+
+| Agent idea | In this project |
+|---|---|
+| Search | Scanner: new tokens, volume spikes, buy/sell flow, price change, socials |
+| Risk | Rug Check: authorities, LP, top holders excluding the pool, Token-2022 traps, RugCheck danger flags, creator history, insiders |
+| Whale | Holder concentration and insider-network features, recorded for every token and analysed in `insights.py` (no wallet-level tracking: no verified data source) |
+| Rug watch | Open positions get their safety data re-checked every run; authority re-enabled or a new danger flag means exit. A RugCheck outage is not treated as danger |
+| Exit | Stop-loss, take-profit, trailing stop, liquidity-collapse exit, max hold |
+| Shill / social | `has_socials`, buy/sell ratio and price change recorded and analysed. No influencer scraping |
+| Head of Desk | Sizer, protections (cooldown, stoploss guard, edge gate, circuit breaker), morning report table, Telegram push, live dashboard |
+| Sniper | **Not included.** There is no execution code (see [SAFETY.md](SAFETY.md)), and the forward test shows no edge yet |
+
+## Live dashboard and phone alerts
+
+- Live page (after Pages is on): `https://cyptoboy777.github.io/Pro-Desk-bot/live.html`
+- Telegram push: create a bot with @BotFather, then in the repo go to Settings, Secrets and variables, Actions, and add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`. Never paste them into a chat. History is skipped the first time, so you only get new decisions.
+
+## Hypotheses to test on new data (written down before testing)
+
+Descriptive findings on 127 judged tokens through 2026-11-23 (24h horizon, wide intervals, confounded by liquidity regime):
+1. Higher 24h volume relative to liquidity went with fewer bad outcomes.
+2. A top-10 holder share above about 18% went with more bad outcomes; the current 40% limit looks too loose.
+3. Tokens older than about an hour at first sighting did better than brand-new ones.
+
+Test them only on tokens first seen after that date: `python3 insights.py --since 2026-11-24`. Change a filter only if a hypothesis holds up there with a clearly separated interval.

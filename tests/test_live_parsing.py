@@ -83,3 +83,13 @@ def test_real_token_rejected_only_for_low_liquidity():
                        "pairCreatedAt": (time.time() - 1290) * 1000}], "M")
     t = Token("M", **m, **s)
     assert RiskAgent().check(t, 25).reasons == ["liquidity $18,643"]
+
+
+def test_extra_features_parse_from_real_shaped_payloads():
+    m = parse_market([{"baseToken": {"address": "M", "symbol": "T"}, "priceUsd": "1", "liquidity": {"usd": 5},
+                       "txns": {"h1": {"buys": 2041, "sells": 1426}}, "priceChange": {"m5": -25.16, "h1": 20.15},
+                       "info": {"socials": [{"type": "twitter"}]}}], "M")
+    assert (m["buys_h1"], m["sells_h1"], m["chg_h1"], m["chg_m5"], m["has_socials"]) == (2041, 1426, 20.15, -25.16, True)
+    s = parse_safety(dict(REAL, totalHolders=1336, creatorBalance=0, token={"supply": 956208720704721}, graphInsidersDetected=0))
+    assert s["total_holders"] == 1336 and s["creator_pct"] == 0.0 and s["insider_networks"] == 0
+    assert parse_safety(None)["creator_pct"] is None

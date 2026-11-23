@@ -62,3 +62,22 @@ def test_zero_liquidity_token_does_not_crash_the_desk():
     for i, p in enumerate([1.0, 1.1, 1.2, 1.3, 1.4]):
         st, _ = pl.run_once(json.loads(json.dumps(st)), lambda m, p=p: mk(p, liq=0), lambda m: dict(SAFE), ["AAA"])
     assert st["tick"] == 5 and not st["positions"]
+
+
+def test_rug_watch_exits_when_authority_reenabled_but_not_on_rugcheck_outage():
+    def drive_with(refresh):
+        st = pl.new_state()
+        for i, p in enumerate([1.0, 1.06, 1.12, 1.19, 1.25]):        # enters at tick 4
+            st, e = pl.run_once(json.loads(json.dumps(st)), lambda m, p=p: mk(p), lambda m: dict(SAFE), ["AAA"],
+                                refresh_safety=lambda m: dict(SAFE))
+        assert "AAA" in st["positions"]
+        st, e = pl.run_once(json.loads(json.dumps(st)), lambda m: mk(1.25), lambda m: dict(SAFE), ["AAA"], refresh_safety=refresh)
+        return st, e
+    def outage(m): raise RuntimeError("rugcheck down")
+    st, e = drive_with(outage)
+    assert "AAA" in st["positions"] and not [x for x in e if x["kind"] == "EXIT"]           # outage != danger
+    st, e = drive_with(lambda m: dict(SAFE, mint_authority_disabled=False))
+    x = [x for x in e if x["kind"] == "EXIT"]
+    assert x and x[0]["reason"].startswith("RUG: safety changed") and "AAA" not in st["positions"]
+    st, e = drive_with(lambda m: dict(SAFE, risk_flags=["RugCheck danger: Creator history of rugged tokens"]))
+    assert any(x["kind"] == "EXIT" and "Creator history" in x["reason"] for x in e)

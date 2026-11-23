@@ -46,6 +46,11 @@ def parse_market(pairs, mint):
                 "liquidity_usd": liq,
                 "volume_24h": float((p.get("volume") or {}).get("h24") or 0),
                 "age_minutes": (time.time() * 1000 - created) / 60000 if created else 0.0,
+                "buys_h1": ((p.get("txns") or {}).get("h1") or {}).get("buys"),
+                "sells_h1": ((p.get("txns") or {}).get("h1") or {}).get("sells"),
+                "chg_h1": (p.get("priceChange") or {}).get("h1"),
+                "chg_m5": (p.get("priceChange") or {}).get("m5"),
+                "has_socials": bool((p.get("info") or {}).get("socials")),
             }
     return best
 
@@ -85,7 +90,14 @@ def parse_safety(rep):
     for r in rep.get("risks") or []:
         if (r or {}).get("level") == "danger":      # level names assumed: not seen in the sample
             flags.append("RugCheck danger: " + str((r or {}).get("name", "?")))
+    supply = float(((rep.get("token") or {}).get("supply")) or 0)
+    cb = rep.get("creatorBalance")
+    insiders = rep.get("graphInsidersDetected")
     return {
+        "total_holders": rep.get("totalHolders"),
+        # assumes creatorBalance is in the same raw units as token.supply (true in the one sample seen)
+        "creator_pct": (float(cb) / supply * 100) if (cb is not None and supply > 0) else None,
+        "insider_networks": insiders if isinstance(insiders, int) else None,
         "mint_authority_disabled": "mintAuthority" in rep and rep["mintAuthority"] is None,
         "freeze_authority_disabled": "freezeAuthority" in rep and rep["freezeAuthority"] is None,
         "top10_holders_pct": top10,
@@ -110,6 +122,12 @@ def fetch_market(mint):
     """DexScreener only (cheap). Returns the parse_market dict or None."""
     m = parse_market(_get(f"{DEX}/tokens/v1/solana/{mint}"), mint)
     return m if m and m["price"] > 0 else None
+
+
+def fetch_safety_strict(mint):
+    """Like fetch_safety but RAISES when RugCheck is unreachable (used to re-check open positions,
+    where an outage must not be mistaken for danger)."""
+    return parse_safety(_get(f"{RUG}/tokens/{mint}/report"))
 
 
 def fetch_safety(mint):

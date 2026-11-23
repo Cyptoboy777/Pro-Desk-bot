@@ -15,6 +15,15 @@ class Token:
     freeze_authority_disabled: bool
     lp_burned_pct: float
     risk_flags: list = field(default_factory=list)
+    # extra features (None = not reported). Seen in real DexScreener / RugCheck payloads.
+    total_holders: int = None
+    creator_pct: float = None
+    insider_networks: int = None
+    buys_h1: int = None
+    sells_h1: int = None
+    chg_h1: float = None
+    chg_m5: float = None
+    has_socials: bool = None
 
 
 @dataclass

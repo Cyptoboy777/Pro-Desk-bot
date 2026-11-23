@@ -64,6 +64,10 @@ class ExitAgent:
         pos.peak_price = max(pos.peak_price, t.price)
         if t.liquidity_usd < pos.entry_liquidity * (1 - self.rug):
             return "RUG: liquidity dropped"
+        # RUG WATCH: entry required clean safety data, so any of these appearing later is new and bad
+        if not t.mint_authority_disabled or not t.freeze_authority_disabled or t.risk_flags:
+            why = "; ".join(t.risk_flags) or "authority re-enabled"
+            return "RUG: safety changed (" + why + ")"
         if t.price <= pos.entry_price * (1 - self.stop):
             return "stop-loss"
         if self.tp and t.price >= pos.entry_price * (1 + self.tp):

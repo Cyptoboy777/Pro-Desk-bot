@@ -47,7 +47,7 @@ def _restore(st):
     return b, h
 
 
-def run_once(st, fetch_market, fetch_safety, new_mints, now=None):
+def run_once(st, fetch_market, fetch_safety, new_mints, now=None, refresh_safety=None):
     """Advance the paper desk by one tick. Returns (state, events)."""
     tick = st["tick"] + 1
     for m in new_mints:
@@ -68,7 +68,13 @@ def run_once(st, fetch_market, fetch_safety, new_mints, now=None):
                 st["watch"].pop(m)
             continue
         sf = st["safety"].get(m)
-        if not sf or tick - sf["tick"] > SAFETY_TTL:
+        if m in st["positions"] and refresh_safety and sf:       # rug watch: re-check held tokens every tick
+            try:
+                sf = {"tick": tick, **refresh_safety(m)}
+            except Exception:
+                pass                                              # RugCheck outage is not danger: keep last known data
+            st["safety"][m] = sf
+        elif not sf or tick - sf["tick"] > SAFETY_TTL:
             sf = {"tick": tick, **fetch_safety(m)}
             st["safety"][m] = sf
         tokens.append(Token(m, **mk, **{k: v for k, v in sf.items() if k != "tick"}))
@@ -129,7 +135,8 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.cmd == "run":
         pol = lambda fn: (lambda m: (time.sleep(0.5), fn(m))[1])
-        st, ev = run_once(load_state(), pol(live.fetch_market), pol(live.fetch_safety), live.latest_solana_mints(30))
+        st, ev = run_once(load_state(), pol(live.fetch_market), pol(live.fetch_safety), live.latest_solana_mints(30),
+                          refresh_safety=pol(live.fetch_safety_strict))
         save(st, ev)
         print(report(st, ev))
     else:

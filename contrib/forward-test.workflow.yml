@@ -28,7 +28,7 @@ jobs:
       - name: Keep the code, switch to the data branch
         run: |
           mkdir -p /tmp/app
-          cp -r collector.py paper_live.py desk /tmp/app
+          cp -r collector.py paper_live.py insights.py notify.py desk /tmp/app
           git fetch origin live-data || true
           if git rev-parse --verify -q origin/live-data >/dev/null; then
             git checkout -q -B live-data origin/live-data
@@ -45,6 +45,13 @@ jobs:
           python3 /tmp/app/collector.py report  --data data/snapshots.jsonl > data/report.txt
           python3 /tmp/app/paper_live.py run > data/paper_report.txt 2>&1 || true
           python3 /tmp/app/paper_live.py report --table > data/morning_report.md || true
+          python3 /tmp/app/insights.py --data data/snapshots.jsonl > data/insights.md 2>&1 || true
+      - name: Telegram alerts (does nothing unless both secrets are set)
+        env:
+          PYTHONPATH: /tmp/app
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 /tmp/app/notify.py || true
       - name: Publish data (append-only, no force push)
         run: |
           git config user.name "github-actions[bot]"

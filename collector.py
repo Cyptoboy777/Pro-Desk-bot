@@ -53,7 +53,11 @@ def collect(fetch_token, mints, path, now=None, risk=None, size_usd=25.0):
         rows.append({"kind": "entry", "ts": now, "mint": m, "symbol": t.symbol, "price": t.price,
                      "liq": t.liquidity_usd, "vol24": t.volume_24h, "age_min": round(t.age_minutes, 1),
                      "top10": round(t.top10_holders_pct, 2), "lp": t.lp_burned_pct,
-                     "flags": t.risk_flags, "pass": v.ok, "reasons": v.reasons})
+                     "flags": t.risk_flags, "pass": v.ok, "reasons": v.reasons,
+                     "total_holders": t.total_holders, "creator_pct": t.creator_pct, "insiders": t.insider_networks,
+                     "buy_ratio_h1": (t.buys_h1 / (t.buys_h1 + t.sells_h1)
+                                      if t.buys_h1 is not None and t.sells_h1 is not None and (t.buys_h1 + t.sells_h1) > 0 else None),
+                     "chg_h1": t.chg_h1, "has_socials": t.has_socials})
     append(path, rows)
     return len(rows)
 
