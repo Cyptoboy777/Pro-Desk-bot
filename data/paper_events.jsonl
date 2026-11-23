@@ -12,3 +12,8 @@
 {"t":7,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $13,845","ts":"2026-11-22 01:29"}
 {"t":9,"kind":"FILTERED","sym":"GIGAPIG","reason":"liquidity $14,661","ts":"2026-11-22 16:33"}
 {"t":10,"kind":"FILTERED","sym":"BiFi","reason":"LP burned only 0%; top10 holders 47%; liquidity $2,833; RugCheck danger: Large Amount of LP Unlocked; RugCheck danger: Low Liquidity","ts":"2026-11-22 22:16"}
+{"t":11,"kind":"ENTER","sym":"ZOL","reason":"vol 32.7x + LP burned 100%","size_pct":2.5,"slip":0.47,"ts":"2026-11-23 02:57"}
+{"t":11,"kind":"FILTERED","sym":"AMC","reason":"liquidity $10,665","ts":"2026-11-23 02:57"}
+{"t":11,"kind":"FILTERED","sym":"WCAT","reason":"liquidity $4,904","ts":"2026-11-23 02:57"}
+{"t":11,"kind":"FILTERED","sym":"BiFi","reason":"LP burned only 0%; top10 holders 47%; liquidity $2,461; RugCheck danger: Large Amount of LP Unlocked; RugCheck danger: Low Liquidity","ts":"2026-11-23 02:57"}
+{"t":11,"kind":"FILTERED","sym":"HODL","reason":"liquidity $3,102","ts":"2026-11-23 02:57"}
