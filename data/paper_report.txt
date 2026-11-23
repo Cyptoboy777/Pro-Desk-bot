@@ -1,3 +1,2 @@
-ticks 12 | equity $985.81 (-1.42%) | open 0 | closed 1 (wins 0, losses 1) | halted False
-realized pnl $-5.34 | avg $-5.34 per closed trade
+ticks 13 | equity $985.81 (-1.42%) | open 0 | closed 0 (wins 0, losses 0) | halted False
 Paper results on real prices with simulated fills. Small samples mean nothing.

@@ -20,3 +20,5 @@
 {"t":12,"kind":"EXIT","sym":"ZOL","reason":"stop-loss","pnl":-5.34,"ts":"2026-11-23 11:36"}
 {"t":12,"kind":"SKIP","sym":"ZOL","reason":"cooldown","ts":"2026-11-23 11:36"}
 {"t":12,"kind":"FILTERED","sym":"WCAT","reason":"liquidity $5,718","ts":"2026-11-23 11:36"}
+{"t":13,"kind":"SKIP","sym":"ZOL","reason":"cooldown","ts":"2026-11-23 19:32"}
+{"t":13,"kind":"FILTERED","sym":"BiFi","reason":"LP burned only 0%; top10 holders 47%; liquidity $4,360; RugCheck danger: Large Amount of LP Unlocked; RugCheck danger: Low Liquidity","ts":"2026-11-23 19:32"}
