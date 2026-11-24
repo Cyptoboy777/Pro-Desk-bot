@@ -1,56 +1,56 @@
 # Insights (24h horizon)
 
-Judged tokens (had liquidity at first sighting): **165**. Base rate of a bad outcome: **75/165 =  45%  (95% CI 38%-53%)**.
+Judged tokens (had liquidity at first sighting): **177**. Base rate of a bad outcome: **82/177 =  46%  (95% CI 39%-54%)**.
 
 **Risk agent verdict**
 
 | verdict | bad outcomes |
 |---|---|
-| PASSED | 24/31 =  77%  (95% CI 60%-89%) |
-| REJECTED | 51/134 =  38%  (95% CI 30%-47%) |
+| PASSED | 25/32 =  78%  (95% CI 61%-89%) |
+| REJECTED | 57/145 =  39%  (95% CI 32%-47%) |
 
 **Liquidity at first sighting (USD)**
 
 | range | bad outcomes |
 |---|---|
-| < 2,247 | 1/41 =   2%  (95% CI  0%-13%) |
-| 2,247 to 7,865 | 17/41 =  41%  (95% CI 28%-57%) |
-| 7,865 to 1.823e+04 | 28/41 =  68%  (95% CI 53%-80%) |
-| >= 1.823e+04 | 29/42 =  69%  (95% CI 54%-81%) |
+| < 2,247 | 1/44 =   2%  (95% CI  0%-12%) |
+| 2,247 to 7,855 | 19/44 =  43%  (95% CI 30%-58%) |
+| 7,855 to 1.752e+04 | 31/44 =  70%  (95% CI 56%-82%) |
+| >= 1.752e+04 | 31/45 =  69%  (95% CI 54%-80%) |
 
 **Token age at first sighting (minutes)**
 
 | range | bad outcomes |
 |---|---|
-| < 53.1 | 29/41 =  71%  (95% CI 56%-82%) |
-| 53.1 to 106 | 19/41 =  46%  (95% CI 32%-61%) |
-| 106 to 164.3 | 10/41 =  24%  (95% CI 14%-39%) |
-| >= 164.3 | 17/42 =  40%  (95% CI 27%-56%) |
+| < 53.1 | 30/44 =  68%  (95% CI 53%-80%) |
+| 53.1 to 106 | 22/44 =  50%  (95% CI 36%-64%) |
+| 106 to 171.2 | 11/44 =  25%  (95% CI 15%-39%) |
+| >= 171.2 | 19/45 =  42%  (95% CI 29%-57%) |
 
 **Top-10 holder share (%, pool excluded)**
 
 | range | bad outcomes |
 |---|---|
-| < 9.49 | 7/41 =  17%  (95% CI  9%-31%) |
-| 9.49 to 18.47 | 19/41 =  46%  (95% CI 32%-61%) |
-| 18.47 to 24.76 | 24/41 =  59%  (95% CI 43%-72%) |
-| >= 24.76 | 25/42 =  60%  (95% CI 44%-73%) |
+| < 9.93 | 9/44 =  20%  (95% CI 11%-35%) |
+| 9.93 to 18.47 | 18/43 =  42%  (95% CI 28%-57%) |
+| 18.47 to 24.76 | 28/45 =  62%  (95% CI 48%-75%) |
+| >= 24.76 | 27/45 =  60%  (95% CI 45%-73%) |
 
 **24h volume / liquidity**
 
 | range | bad outcomes |
 |---|---|
-| < 7.437 | 25/41 =  61%  (95% CI 46%-74%) |
-| 7.437 to 22.51 | 26/41 =  63%  (95% CI 48%-76%) |
-| 22.51 to 61.55 | 18/41 =  44%  (95% CI 30%-59%) |
-| >= 61.55 | 6/42 =  14%  (95% CI  7%-28%) |
+| < 7.437 | 27/44 =  61%  (95% CI 47%-74%) |
+| 7.437 to 21.66 | 27/44 =  61%  (95% CI 47%-74%) |
+| 21.66 to 59.02 | 20/44 =  45%  (95% CI 32%-60%) |
+| >= 59.02 | 8/45 =  18%  (95% CI  9%-31%) |
 
 **Safety flags present at first sighting**
 
 | flag | bad outcomes |
 |---|---|
-| Low Liquidity | 5/65 =   8%  (95% CI  3%-17%) |
-| Creator history of rugged tokens | 4/11 =  36%  (95% CI 15%-65%) |
+| Low Liquidity | 6/69 =   9%  (95% CI  4%-18%) |
+| Creator history of rugged tokens | 5/13 =  38%  (95% CI 18%-64%) |
 | Large Amount of LP Unlocked | 2/5 =  40%  (95% CI 12%-77%) |
 
 Caution: liquidity, age and verdict are tangled together. The Risk agent only passes tokens with liquidity of $20k or more, which selects tokens that already graduated to a pool and are in their most volatile phase. Do not read one row alone.
