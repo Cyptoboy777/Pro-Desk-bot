@@ -26,3 +26,7 @@
 {"t":14,"kind":"FILTERED","sym":"AMC","reason":"liquidity $11,461","ts":"2026-11-23 23:03"}
 {"t":17,"kind":"FILTERED","sym":"HI","reason":"liquidity $4,178","ts":"2026-11-25 02:54"}
 {"t":18,"kind":"FILTERED","sym":"HI","reason":"liquidity $7,673","ts":"2026-11-25 11:54"}
+{"t":19,"kind":"FILTERED","sym":"Gabriel","reason":"liquidity $16,052","ts":"2026-11-25 20:52"}
+{"t":19,"kind":"FILTERED","sym":"HI","reason":"liquidity $6,322","ts":"2026-11-25 20:52"}
+{"t":19,"kind":"FILTERED","sym":"survive","reason":"liquidity $9,522","ts":"2026-11-25 20:52"}
+{"t":19,"kind":"FILTERED","sym":"ACHI","reason":"liquidity $1,784; RugCheck danger: Low Liquidity","ts":"2026-11-25 20:52"}
