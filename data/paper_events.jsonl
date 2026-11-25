@@ -25,3 +25,4 @@
 {"t":14,"kind":"FILTERED","sym":"BiFi","reason":"LP burned only 0%; top10 holders 47%; liquidity $3,508; RugCheck danger: Large Amount of LP Unlocked; RugCheck danger: Low Liquidity","ts":"2026-11-23 23:03"}
 {"t":14,"kind":"FILTERED","sym":"AMC","reason":"liquidity $11,461","ts":"2026-11-23 23:03"}
 {"t":17,"kind":"FILTERED","sym":"HI","reason":"liquidity $4,178","ts":"2026-11-25 02:54"}
+{"t":18,"kind":"FILTERED","sym":"HI","reason":"liquidity $7,673","ts":"2026-11-25 11:54"}
