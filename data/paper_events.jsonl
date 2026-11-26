@@ -33,3 +33,4 @@
 {"t":20,"kind":"FILTERED","sym":"HI","reason":"liquidity $6,218","ts":"2026-11-26 03:20"}
 {"t":20,"kind":"FILTERED","sym":"Gabriel","reason":"liquidity $13,004","ts":"2026-11-26 03:20"}
 {"t":20,"kind":"FILTERED","sym":"ACHI","reason":"liquidity $1,787; RugCheck danger: Low Liquidity","ts":"2026-11-26 03:20"}
+{"t":21,"kind":"FILTERED","sym":"BIKINSEM","reason":"liquidity $5,091","ts":"2026-11-26 12:59"}
