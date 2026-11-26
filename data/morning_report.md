@@ -1,6 +1,6 @@
 # Paper desk report
 
-ticks 19 | equity $985.81 (-1.42%) | open 0 | closed 2 (wins 0, losses 2) | halted False
+ticks 20 | equity $985.81 (-1.42%) | open 0 | closed 2 (wins 0, losses 2) | halted False
 realized pnl $-14.19 | avg $-7.09 per closed trade
 Paper results on real prices with simulated fills. Small samples mean nothing.
 
