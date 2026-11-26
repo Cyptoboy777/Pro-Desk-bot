@@ -1,0 +1,29 @@
+# Mirrors the API files the forward-test job writes on the live-data branch into docs/api/v1 on main,
+# so GitHub Pages serves them at https://<user>.github.io/Pro-Desk-bot/api/v1/*.json (CORS-friendly).
+name: Publish API to Pages
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */3 * * *"
+permissions:
+  contents: write
+concurrency: pages-api
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy API files from live-data
+        run: |
+          git fetch origin live-data
+          mkdir -p docs/api/v1
+          for f in summary features recent_scans rubric dataset; do
+            git show origin/live-data:data/api/v1/$f.json > docs/api/v1/$f.json.tmp && mv docs/api/v1/$f.json.tmp docs/api/v1/$f.json || rm -f docs/api/v1/$f.json.tmp
+          done
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/api
+          git diff --cached --quiet || { git commit -qm "api snapshot $(date -u +%FT%TZ)"; git push origin HEAD:main; }

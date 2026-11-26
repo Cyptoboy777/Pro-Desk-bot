@@ -51,6 +51,7 @@ def parse_market(pairs, mint):
                 "chg_h1": (p.get("priceChange") or {}).get("h1"),
                 "chg_m5": (p.get("priceChange") or {}).get("m5"),
                 "has_socials": bool((p.get("info") or {}).get("socials")),
+                "mcap": p.get("marketCap") or p.get("fdv"),
             }
     return best
 
@@ -101,6 +102,7 @@ def parse_safety(rep):
         "mint_authority_disabled": "mintAuthority" in rep and rep["mintAuthority"] is None,
         "freeze_authority_disabled": "freezeAuthority" in rep and rep["freezeAuthority"] is None,
         "top10_holders_pct": top10,
+        "top1_pct": float(holders[0].get("pct", 100)) if holders else None,
         "lp_burned_pct": lp,
         "risk_flags": flags,
     }

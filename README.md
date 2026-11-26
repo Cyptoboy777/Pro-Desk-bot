@@ -1,109 +1,99 @@
-<p align="center"><img src="assets/logo-lockup.png" alt="Desk Terminal" width="560"></p>
+# Solana Token Risk & Forward-Test Telemetry Engine
 
-# Desk Terminal (Pro Desk Bot)
+[![CI](https://github.com/Cyptoboy777/Pro-Desk-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/Cyptoboy777/Pro-Desk-bot/actions/workflows/ci.yml)
+[![Forward test](https://github.com/Cyptoboy777/Pro-Desk-bot/actions/workflows/forward-test.yml/badge.svg)](https://github.com/Cyptoboy777/Pro-Desk-bot/actions/workflows/forward-test.yml)
+![License: MIT](https://img.shields.io/badge/license-MIT-green)
+![Zero execution](https://img.shields.io/badge/zero--execution-enforced%20by%20CI-blue)
 
-A paper-trading desk of six rule-based agents for new Solana tokens: **Scanner**, **Rug Check**, **Sizer**, **Executor**, **Logger**, **Equity**, with a **Head of Desk** that routes data and flags what needs a human. Every decision is written to a log with a reason.
+An open, read-only research tool. It records real new Solana tokens, scores them with an explainable risk rubric, waits 1h / 6h / 24h, and publishes what actually happened: **which risk signals predicted rugs and which did not**, with confidence intervals, as free static JSON.
 
-**[Live dashboard →](https://cyptoboy777.github.io/Pro-Desk-bot/)** (static view of real paper-trading runs from the engine)
+**Dashboard:** `https://cyptoboy777.github.io/Pro-Desk-bot/` (research) · `live.html` (paper desk) · `api/v1/summary.json` (API)
 
-> **Paper trading only.** There is no wallet code, no private keys and no order placement. Nothing here is financial advice, and results from the built-in simulator are not evidence of real-market profit.
+> **Zero-execution guarantee.** This repository never contains wallet keys, seed phrases, signing, swaps or order routing. A CI test scans every `.py`, `.js`, `.html`, `.yml` and `.json` file and fails the build if such code or an unapproved network host appears. See [SAFETY.md](SAFETY.md).
 
-<p align="center"><img src="assets/screenshots/dashboard-desktop.png" alt="Desk Terminal dashboard" width="760"></p>
-<p align="center"><img src="assets/screenshots/dashboard-mobile.png" alt="Desk Terminal on a phone" width="260"></p>
+## Honest results so far
 
-## What is in the box
+Forward test, 24h horizon, "bad" = pair vanished, or liquidity or price at least halved (see [METHODOLOGY.md](METHODOLOGY.md)). Live numbers: `api/v1/summary.json`.
 
-| Path | What it does |
+| engine | passed: bad outcomes | rejected: bad outcomes | edge status |
+|---|---|---|---|
+| v1 rules (live) | 41/49 = 84% (CI 71-91%) | 77/202 = 38% (CI 32-45%) | `NO_EDGE` |
+| v2 rubric (shadow) | 22/35 = 63% (CI 46-77%) | 96/216 = 44% (CI 38-51%) | `NO_EDGE` |
+
+(528 tokens recorded, 251 judged, as of 2026-11-27.)
+
+What this means: the basic static checks (authorities, LP lock, holder count, RugCheck flags) do **not** protect against 24h failure; tokens that pass them did worse than rejected ones, partly because passing needs liquidity of $20k+, which selects tokens in their most volatile phase. The v2 rubric was designed on tokens first seen before 2026-11-24 and locked; on the small post-lock sample (n=50) it also shows no separation. **We do not claim to have solved the false-pass problem.** The value of this project is the open, honest measurement that lets anyone test ideas against it. The paper desk is currently below its starting equity.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  DS[DexScreener public API] --> C
+  RC[RugCheck public API] --> C
+  subgraph GA[GitHub Actions, read-only]
+    C[collector.py<br/>snapshot + verdicts] --> S[(snapshots.jsonl<br/>append-only)]
+    C -->|1h / 6h / 24h| S
+    S --> I[insights.py<br/>Wilson CIs]
+    S --> E[api_export.py]
+    S --> P[paper_live.py<br/>fees + slippage]
+    R[desk/risk_engine.py<br/>v2 rubric] --> E
+  end
+  E --> L[(live-data branch<br/>data/api/v1/*.json)]
+  L -->|pages-api.yml| D[docs/api/v1/*.json<br/>GitHub Pages]
+  D --> W[docs/index.html<br/>Chart.js, simulator, inspector]
+  D --> X[Any dApp, wallet or researcher]
+```
+
+## Quickstart
+
+```bash
+git clone https://github.com/Cyptoboy777/Pro-Desk-bot && cd Pro-Desk-bot
+pip install pytest && python -m pytest -q        # includes the zero-wallet safety guard
+python3 collector.py collect && python3 collector.py score && python3 collector.py report
+python3 insights.py --since 2026-11-24           # test hypotheses on new data only
+python3 api_export.py --out api/v1               # build the JSON API locally
+python3 -c "import json;from desk.risk_engine import assess;print(json.dumps(assess({'liq':50000,'age_min':300,'top10':12,'lp':100,'auth_ok':True,'flags':[]}),indent=1))"
+```
+
+To run it unattended on your own fork: enable Actions; `forward-test.yml` records data on the `live-data` branch and `pages-api.yml` mirrors the API into `docs/api/v1/` for GitHub Pages (Settings, Pages, deploy from `main` `/docs`). GitHub schedules are best effort: the 30-minute cron often runs every few hours, and the report only uses outcomes measured within 1.5x the horizon.
+
+## Risk engine v2 (`desk/risk_engine.py`)
+
+`assess(row) -> {risk_score 0-100, passed, failed_reasons, feature_vector, components, engine_version}`. Hard rules (authorities, RugCheck danger flags, LP, minimum liquidity) always fail. Then penalty points: **maturity** (age buckets), **concentration** (non-pool top-10 share, single-wallet share, insider-linked wallets), **liquidity quality** (liquidity / market cap, volume / liquidity wash pattern, last-hour buy share). Unknown data adds no points and is listed, never treated as safe. Everything is configurable through `RiskConfig`. `docs/rubric.js` is an identical JavaScript port, kept in sync by a parity test.
+
+Naming honesty: DexScreener exposes transaction counts, not unique wallets, so "velocity" is a buy/sell *transaction* ratio, and "sniper clustering" uses RugCheck's insider-network count as a proxy.
+
+## Public JSON API (v1)
+
+Static files, CORS-friendly, versioned by path. Base: `https://cyptoboy777.github.io/Pro-Desk-bot/api/v1/` (fallback: `https://raw.githubusercontent.com/Cyptoboy777/Pro-Desk-bot/live-data/data/api/v1/`).
+
+| file | contents |
 |---|---|
-| `desk/` | Agents, sizer, protections (cooldown, stoploss guard, edge gate), paper broker, simulator |
-| `experiments.py` | Tune on 100 seeds, report on 100 unseen seeds, sensitivity by rug rate and edge |
-| `run_desk.py` | One simulated night, or `--seeds N` for a distribution |
-| `alerts.py` | Live **read-only** alerts from DexScreener + RugCheck (run `--probe` first, see below) |
-| `export_runs.py`, `dashboard_template.html` | Builds the static dashboard from real paper runs |
-| `insights.py` | Which recorded features go with bad outcomes, with 95% intervals; `--since DATE` tests a hypothesis on new data only |
-| `notify.py` | Optional Telegram push for paper decisions (needs two repo secrets) |
-| `docs/live.html` | Live dashboard: reads the data the scheduled job publishes |
-| `paper_live.py` | Live paper trader on real prices, state persisted between runs |
-| `collector.py` | Forward test: record real new tokens, score them after 1h / 6h, compare passed vs rejected |
-| `bot/telegram_bot.py` | Read-only Telegram bot: send a token address, get the Risk agent's verdict |
-| `assets/` | Logo, favicon, social preview, screenshots |
+| `summary.json` | sample size, pass vs reject survival with 95% Wilson CIs for v1 and v2-shadow at 1h/6h/24h, `edge_status` (`INSUFFICIENT_DATA`, `NO_EDGE`, `STATISTICAL_EDGE_DETECTED`), paper equity curve |
+| `features.json` | signals ranked by correlation with bad outcomes, with precision, recall and intervals |
+| `recent_scans.json` | latest 200 evaluations with v2 score, reasons and outcomes |
+| `rubric.json` | the exact scoring configuration |
+| `dataset.json` | 24h-labelled rows used by the browser simulator |
 
-## Quick start
-
-```bash
-python3 -m pip install pytest
-python3 -m pytest -q tests
-python3 run_desk.py --seeds 100
-python3 experiments.py
-python3 export_runs.py && python3 build_dashboard.py   # writes docs/index.html
+```js
+const s = await (await fetch("https://cyptoboy777.github.io/Pro-Desk-bot/api/v1/summary.json")).json();
+console.log(s.edge_status, s.pass_vs_reject_24h.v1.pass.survival_ci95);
 ```
 
-Live alerts (read-only, optional Telegram via `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`):
+Edge status rule: `INSUFFICIENT_DATA` until both groups have 30+ judged tokens; `STATISTICAL_EDGE_DETECTED` only if the pass group's bad-outcome interval lies entirely below the reject group's; otherwise `NO_EDGE`. It describes survival, not profit.
 
-```bash
-python3 alerts.py --probe   # verify the API field names against real responses first
-python3 alerts.py --once
-```
+## Layout
 
-The live adapter was checked against one real DexScreener and one real RugCheck response (captured 2026-11-19). It excludes liquidity-pool accounts from the top-holder share, flags Token-2022 traps (permanent delegate, transfer hook, transfer fee) and fails closed: missing safety data means the token is rejected. Note that mint-authority-disabled and LP-locked are defaults for pump.fun-style launches, so they say little there. Holder concentration, insiders and liquidity matter more.
+`desk/` agents, risk engine, live parsers · `collector.py` forward test · `insights.py` statistics · `api_export.py` JSON API · `paper_live.py` live paper trader (0.3% fee + slippage model) · `docs/` dashboards and API · `tests/` pytest suite · `bot/` read-only Telegram risk checker · [METHODOLOGY.md](METHODOLOGY.md) · [GRANT_PROPOSAL.md](GRANT_PROPOSAL.md)
 
-## What the experiments found
+## Paper trading, alerts and the original desk
 
-On unseen seeds the baseline (fixed ticket, no protections) lost about 3.5% a night. Sizing alone made it worse (-5.3%). Stoploss guard, cooldown and an edge gate that shrinks size while recent closed trades are net negative together cut it to -2.4% with a worst night of -9.3%. None of this makes a no-edge market profitable. Stealth rugs look clean and pass every check, so they are bounded by size and exposure instead of detected. Profit appears only when the market has a strong edge. Details are in the dashboard and `experiments.py`.
+The 8-agent paper desk (scout, risk, sizer, exit, circuit breaker) and its simulated experiments are unchanged: on unseen simulated seeds the unprotected baseline lost about 3.5% a night and protections cut that to about -2.4%. No-edge markets stay unprofitable. Telegram push (`notify.py`) and the risk-check bot need your own secrets and only ever send messages.
 
-## Safety rules the code follows
+## Hypotheses (written before testing)
 
-1. An LLM may comment or veto, and can never override a Rug Check rejection.
-2. Missing safety data is treated as unsafe.
-3. A circuit breaker halts entries at a 5% loss and flags it for a human.
-4. Before any real money: weeks of live read-only alerts, then paper results you checked yourself, then a separate wallet with an amount you can afford to lose.
+H1 high volume/liquidity protective; H2 top-10 above ~18% harmful; H3 older tokens better. Test on tokens first seen after 2026-11-23 with `python3 insights.py --since 2026-11-24`. The API (`features.json`) shows which signals separate right now; confirm anything there on newer data before acting on it.
 
-## Forward test (does the desk have any real edge?)
+## License
 
-`collector.py` records real new Solana tokens with the Risk agent's verdict, then revisits them after 1h and 6h and writes price and liquidity changes. `python3 collector.py report` compares tokens that passed vs were rejected (raw price change and rug rate, before costs). To run it unattended on GitHub, copy `contrib/forward-test.workflow.yml` to `.github/workflows/forward-test.yml`; results land on the `live-data` branch (`data/report.txt`). Trust nothing before 100+ tokens per group.
-
-## Live paper trading
-
-`paper_live.py run` advances the desk by one tick on **real tokens and real prices** with simulated fills: it keeps a watchlist, applies the Risk agent, sizing, exits and protections, and persists state in `data/paper_state.json` (decisions in `data/paper_events.jsonl`). The Actions workflow runs it every 30 minutes; read `data/paper_report.txt` on the `live-data` branch. Limits: polling every ~30 minutes cannot honour fast stops, and DexScreener prices are not executable quotes, so treat results as indicative only.
-
-## Telegram risk-check bot
-
-```bash
-export TELEGRAM_BOT_TOKEN=...     # create a bot with @BotFather
-python3 -m bot.telegram_bot
-```
-
-Send a Solana token address (paste it, addresses are case-sensitive) or `/check <address>`. The bot reads public data only, replies with the Risk agent's reasons, fails closed when data is unavailable, and rate-limits each chat. It is a template: host it anywhere that can run a long-lived Python process.
-
-## Work with me
-
-I build read-only crypto analytics, risk checkers, Telegram bots and dashboards, tested and documented like this project. Message me through my GitHub profile: [@Cyptoboy777](https://github.com/Cyptoboy777).
-
-See [SAFETY.md](SAFETY.md) for the rules the code enforces (no execution code, hostile token text, fail closed).
-
-## Feature map (from the 8-agent desk idea, with the unsafe or unproven parts left out)
-
-| Agent idea | In this project |
-|---|---|
-| Search | Scanner: new tokens, volume spikes, buy/sell flow, price change, socials |
-| Risk | Rug Check: authorities, LP, top holders excluding the pool, Token-2022 traps, RugCheck danger flags, creator history, insiders |
-| Whale | Holder concentration and insider-network features, recorded for every token and analysed in `insights.py` (no wallet-level tracking: no verified data source) |
-| Rug watch | Open positions get their safety data re-checked every run; authority re-enabled or a new danger flag means exit. A RugCheck outage is not treated as danger |
-| Exit | Stop-loss, take-profit, trailing stop, liquidity-collapse exit, max hold |
-| Shill / social | `has_socials`, buy/sell ratio and price change recorded and analysed. No influencer scraping |
-| Head of Desk | Sizer, protections (cooldown, stoploss guard, edge gate, circuit breaker), morning report table, Telegram push, live dashboard |
-| Sniper | **Not included.** There is no execution code (see [SAFETY.md](SAFETY.md)), and the forward test shows no edge yet |
-
-## Live dashboard and phone alerts
-
-- Live page (after Pages is on): `https://cyptoboy777.github.io/Pro-Desk-bot/live.html`
-- Telegram push: create a bot with @BotFather, then in the repo go to Settings, Secrets and variables, Actions, and add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`. Never paste them into a chat. History is skipped the first time, so you only get new decisions.
-
-## Hypotheses to test on new data (written down before testing)
-
-Descriptive findings on 127 judged tokens through 2026-11-23 (24h horizon, wide intervals, confounded by liquidity regime):
-1. Higher 24h volume relative to liquidity went with fewer bad outcomes.
-2. A top-10 holder share above about 18% went with more bad outcomes; the current 40% limit looks too loose.
-3. Tokens older than about an hour at first sighting did better than brand-new ones.
-
-Test them only on tokens first seen after that date: `python3 insights.py --since 2026-11-24`. Change a filter only if a hypothesis holds up there with a clearly separated interval.
+MIT, see [LICENSE](LICENSE). Not financial advice. Nothing here trades.

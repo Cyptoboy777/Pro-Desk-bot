@@ -24,6 +24,8 @@ class Token:
     chg_h1: float = None
     chg_m5: float = None
     has_socials: bool = None
+    mcap: float = None
+    top1_pct: float = None
 
 
 @dataclass

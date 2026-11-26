@@ -1,8 +1,8 @@
 # NOT ACTIVE. To turn on, copy this file to .github/workflows/forward-test.yml
 # (GitHub web UI: Add file > Create new file, works from a phone).
 #
-# Every 30 minutes on GitHub's runners: record new Solana tokens + the Risk agent's verdict,
-# score tokens that are 1h / 6h old, advance the live paper trader (data/paper_report.txt), and publish data/ and data/report.txt to the
+# Scheduled every 30 minutes (GitHub often delays or skips scheduled runs, so real cadence can be several hours): record new Solana tokens + the Risk agent's verdict,
+# score tokens that are 1h / 6h / 24h old, advance the live paper trader (data/paper_report.txt), and publish data/ and data/report.txt to the
 # `live-data` branch. Read-only public APIs, no secrets, no keys, no orders.
 name: Forward test
 
@@ -28,7 +28,7 @@ jobs:
       - name: Keep the code, switch to the data branch
         run: |
           mkdir -p /tmp/app
-          cp -r collector.py paper_live.py insights.py notify.py desk /tmp/app
+          cp -r collector.py paper_live.py insights.py notify.py api_export.py desk /tmp/app
           git fetch origin live-data || true
           if git rev-parse --verify -q origin/live-data >/dev/null; then
             git checkout -q -B live-data origin/live-data
@@ -46,6 +46,10 @@ jobs:
           python3 /tmp/app/paper_live.py run > data/paper_report.txt 2>&1 || true
           python3 /tmp/app/paper_live.py report --table > data/morning_report.md || true
           python3 /tmp/app/insights.py --data data/snapshots.jsonl > data/insights.md 2>&1 || true
+      - name: Build the public JSON API (static, versioned)
+        env:
+          PYTHONPATH: /tmp/app
+        run: python3 /tmp/app/api_export.py --data data/snapshots.jsonl --state data/paper_state.json --out data/api/v1 || true
       - name: Telegram alerts (does nothing unless both secrets are set)
         env:
           PYTHONPATH: /tmp/app

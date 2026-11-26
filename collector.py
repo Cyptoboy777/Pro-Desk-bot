@@ -57,7 +57,8 @@ def collect(fetch_token, mints, path, now=None, risk=None, size_usd=25.0):
                      "total_holders": t.total_holders, "creator_pct": t.creator_pct, "insiders": t.insider_networks,
                      "buy_ratio_h1": (t.buys_h1 / (t.buys_h1 + t.sells_h1)
                                       if t.buys_h1 is not None and t.sells_h1 is not None and (t.buys_h1 + t.sells_h1) > 0 else None),
-                     "chg_h1": t.chg_h1, "has_socials": t.has_socials})
+                     "chg_h1": t.chg_h1, "has_socials": t.has_socials, "mcap": t.mcap, "top1": t.top1_pct,
+                     "auth_ok": bool(t.mint_authority_disabled and t.freeze_authority_disabled)})
     append(path, rows)
     return len(rows)
 
