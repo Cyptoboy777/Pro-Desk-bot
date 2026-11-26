@@ -1,12 +1,6 @@
-"""Forward test: record real new Solana tokens, then score what happened later.
+"""Forward-test collection and scheduled time-window snapshots.
 
-    python3 collector.py collect   # snapshot new tokens + the Risk agent's verdict
-    python3 collector.py score     # revisit tokens after 1h / 6h and record price + liquidity
-    python3 collector.py report    # compare tokens that PASSED vs were REJECTED
-
-Read-only: public DexScreener / RugCheck endpoints, no keys, no orders. The data file is
-append-only JSONL so it can be committed, diffed and audited.
-Outcome numbers are raw price changes, NOT tradable returns (no fees, slippage or exit liquidity).
+Read-only public market telemetry. These observations are descriptive, not returns.
 """
 import argparse
 import json
@@ -18,8 +12,9 @@ from desk import live
 from desk.agents import RiskAgent
 
 HORIZONS_H = (1, 6, 24)
-LATE = 1.5                  # an outcome counts for horizon h only if measured within LATE*h hours
-RUG_LIQ_DROP = 0.5          # liquidity fell by half or more => counted as rugged
+SNAPSHOT_WINDOWS_MIN = (0, 30, 120, 360, 1440)
+LATE = 1.5
+RUG_LIQ_DROP = 0.5
 
 
 def load(path):
@@ -63,6 +58,48 @@ def collect(fetch_token, mints, path, now=None, risk=None, size_usd=25.0):
     return len(rows)
 
 
+def snapshot_features(entry, token, observed_at):
+    """Return transparent deltas. Holder count is a proxy, not wallet identity/distribution."""
+    elapsed_h = max((observed_at - entry["ts"]) / 3600, 0)
+    base_liq, base_vol = entry.get("liq") or 0, entry.get("vol24") or 0
+    liq = token.liquidity_usd if token else 0
+    holders = token.total_holders if token else None
+    base_holders = entry.get("total_holders")
+    vol = token.volume_24h if token else 0
+    return {
+        "lp_delta_pct": ((liq / base_liq - 1) * 100 if base_liq > 0 else None),
+        "holder_growth_rate": ((holders - base_holders) / elapsed_h if holders is not None and base_holders is not None and elapsed_h > 0 else None),
+        "volume_decay_ratio": (vol / base_vol if base_vol > 0 else None),
+        "holder_metric_note": "holder-count change only; unique-holder identities and early-wallet dumping are not observed",
+        "volume_metric_note": "ratio of API-reported rolling 24h volume; not launch-window volume",
+    }
+
+
+def score_snapshots(fetch_token, path, now=None):
+    """Append one observation per entry/window when due; retries transient fetch failures."""
+    now = time.time() if now is None else now
+    rows = load(path)
+    done = {(r["mint"], r.get("window_min")) for r in rows if r.get("kind") == "snapshot"}
+    entries = {r["mint"]: r for r in rows if r.get("kind") == "entry"}
+    out = []
+    for mint, entry in entries.items():
+        for window in SNAPSHOT_WINDOWS_MIN:
+            if window == 0 or (mint, window) in done or now < entry["ts"] + window * 60:
+                continue
+            try:
+                token = fetch_token(mint)
+            except Exception:
+                continue
+            feats = snapshot_features(entry, token, now)
+            out.append({"kind": "snapshot", "ts": now, "mint": mint, "window_min": window,
+                        "price": token.price if token else 0.0, "liq": token.liquidity_usd if token else 0.0,
+                        "vol24": token.volume_24h if token else 0.0,
+                        "total_holders": token.total_holders if token else None, "gone": token is None,
+                        **feats})
+    append(path, out)
+    return len(out)
+
+
 def score(fetch_token, path, now=None):
     now = time.time() if now is None else now
     rows = load(path)
@@ -75,10 +112,9 @@ def score(fetch_token, path, now=None):
             try:
                 t = fetch_token(e["mint"])
             except Exception:
-                continue                      # network hiccup: try again next run, record nothing
+                continue
             out.append({"kind": "outcome", "ts": now, "mint": e["mint"], "horizon_h": h,
-                        "price": t.price if t else 0.0, "liq": t.liquidity_usd if t else 0.0,
-                        "gone": t is None})
+                        "price": t.price if t else 0.0, "liq": t.liquidity_usd if t else 0.0, "gone": t is None})
     append(path, out)
     return len(out)
 
@@ -104,7 +140,7 @@ def report(path):
                 n += 1
                 el.append(hrs)
                 ch.append((o["price"] / e["price"] - 1) * 100 if e["price"] else 0.0)
-                if e["liq"] > 0:                       # a rug is only measurable if there was liquidity
+                if e["liq"] > 0:
                     rug_n += 1
                     rugged += o["gone"] or o["liq"] <= e["liq"] * (1 - RUG_LIQ_DROP)
             if not n:
@@ -120,7 +156,6 @@ def report(path):
 
 
 def polite(fn, pause=0.5):
-    """Wrap a fetcher so free APIs are not hammered."""
     def wrapped(m):
         time.sleep(pause)
         return fn(m)
@@ -137,6 +172,8 @@ if __name__ == "__main__":
         mints = live.latest_solana_mints(a.limit)
         print("recorded", collect(polite(live.fetch_token), mints, a.data), "of", len(mints), "tokens")
     elif a.cmd == "score":
-        print("scored", score(polite(live.fetch_token), a.data), "outcomes")
+        fetch = polite(live.fetch_token)
+        print("recorded", score_snapshots(fetch, a.data), "time-window snapshots")
+        print("scored", score(fetch, a.data), "outcomes")
     else:
         print(report(a.data))

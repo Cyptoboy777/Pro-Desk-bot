@@ -1,40 +1,32 @@
-# Grant proposal: Solana Token Risk & Forward-Test Telemetry (open-source public good)
+# Grant proposal: Open Solana Risk Telemetry Infrastructure
 
-**Requested:** $3,000-$5,000 USDG, three 2-week milestones. **Applicant:** [name, contact, GitHub: Cyptoboy777]. **License:** MIT. **Repo:** https://github.com/Cyptoboy777/Pro-Desk-bot
+**Requested:** $3,000–$5,000 USDG, three two-week milestones. **Applicant:** Cyptoboy777 (contact: [add email or preferred contact]). **License:** MIT. **Repository:** https://github.com/Cyptoboy777/Pro-Desk-bot
 
-## Problem
-Memecoin risk tools show static checks (mint authority, LP lock, holder counts) as if they mean "safe". Our own forward test says otherwise: of 49 tokens that passed such checks and were judged at 24h, 41 (84%) still vanished or lost at least half their liquidity or price, worse than the tokens the same rules rejected. No open, continuously-updated dataset exists that lets wallets and researchers measure which signals actually matter.
-
-## What exists today (verifiable in the repo)
-Automated read-only collector on GitHub Actions with append-only data on a `live-data` branch; 528 tokens recorded, 251 judged at 24h; Wilson-interval statistics; an explainable risk rubric v2 in Python and JavaScript with a parity test; static JSON API; interactive dashboard with filter simulator; and a CI test that fails the build if wallet, key, signing or swap code appears. **Current honest status: `NO_EDGE`.** We will not market a signal that the data does not support.
-
-## Why fund it
-A public, reproducible, honest benchmark is the missing piece. The output is infrastructure and evidence that other builders can reuse, including a negative-result record that stops people shipping false safety badges.
+## Public-good objective
+Build and maintain open, reproducible, read-only telemetry for early Solana token markets. The deliverable is durable public data, schemas, statistical reporting, and developer interfaces—not trading execution or claims of predictive performance. The current dataset and methodology document the limitations of API-derived observations and small samples.
 
 ## Milestones
 
-**Milestone 1 (weeks 1-2): Risk engine v2 + dataset + CI safety**
-- Add repeated per-token snapshots to measure LP depth stability; improve insider/sniper proxies where public data allows.
-- Grow the forward-test dataset to 1,000 judged-or-pending tokens; publish a versioned dataset release.
-- Expand CI safety tests (already scanning .py/.js/.html/.yml/.json, workflow secrets and network hosts) with a documented threat model.
-- *Done when:* 1,000 tokens recorded, v2 evaluated on a pre-registered out-of-time split, CI badge green.
+### 1 — Reliable time-series collection and data quality (weeks 1–2)
+- Add append-only T+0m, T+30m, T+2h, T+6h, and T+24h observations where collection cadence and source availability permit.
+- Publish liquidity-depth changes, holder-count changes, and rolling-volume ratios with explicit proxy/coverage caveats; do not imply wallet-level identity or organic volume.
+- Maintain compatibility with existing single-snapshot rows and add deterministic fixture tests.
+- **Acceptance:** schema and migration notes, reproducible tests, CI safety guard passing, and no fabricated/backfilled observations.
 
-**Milestone 2 (weeks 3-4): Public API + simulator + Blink**
-- Stabilise `api/v1` (schema docs, changelog, uptime check).
-- Harden the Filter Backtest Simulator (confidence intervals, train/test toggle, shareable URLs).
-- A Solana Action/Blink risk-check endpoint that returns the rubric breakdown for a mint. It must be read-only: it returns a risk report and a link, and never builds, requests or signs a transaction. The zero-execution CI guard stays in force and is extended to it.
-- *Done when:* public endpoints documented, Blink unfurls a risk card for a mint, safety tests cover the new code.
+### 2 — Public empirical API and research quality (weeks 3–4)
+- Publish versioned static summary/features and a read-only Solana Actions informational risk-check response.
+- Include sample-status labels, Wilson intervals, baseline lift and exact-test p-values; mark weak evidence clearly and avoid causal or trading-edge claims.
+- Generate an auditable report with an explicitly separated out-of-time evaluation when the dataset supports it.
+- **Acceptance:** documented schemas and endpoint behavior, safety tests covering the new files, and `NO_EDGE`/`INSUFFICIENT_DATA` where evidence does not meet the predeclared standard.
 
-**Milestone 3 (weeks 5-6): SDK + research report**
-- Lightweight `npm` and `pip` clients (fetch and type the JSON API; run the rubric locally). No wallet dependencies.
-- Open research report on Solana memecoin rug patterns using the dataset, including negative results and the limits of the label.
-- *Done when:* packages published, README quickstarts tested, report released under CC-BY.
+### 3 — Reusable developer SDKs and maintenance (weeks 5–6)
+- Provide zero-dependency Python and JavaScript clients for the static JSON API, with typed/documented interfaces and bounded caching.
+- Add schema fixtures and cross-language rubric parity tests. Keep all interfaces read-only.
+- Publish report-generation instructions and maintenance guidance for downstream dApps and researchers.
+- **Acceptance:** copy-paste examples pass CI, published schemas are validated, and no wallet/signing/transaction capabilities are introduced.
 
-## Budget (indicative)
-Engineering time for the three milestones; hosting is free (GitHub Actions and Pages). Any paid RPC or data tier is optional and listed separately if needed.
-
-## Success metrics
-Dataset size and freshness; API availability; number of external consumers (stars, forks, SDK installs; we will report whatever the real numbers are); CI safety guard unbroken; one published report.
+## Budget and success measures
+Funding supports engineering, tests, documentation, and public dataset/API maintenance. Success is measured by transparent data coverage and freshness, reproducible CI, schema consumers, and documented limitations—not token performance or trading returns. Hosting remains on GitHub Actions/Pages unless separately justified.
 
 ## Risks and honesty
-Upstream APIs may change or rate-limit (fail-closed parsing, retries). GitHub schedules are best effort. The signal may simply not exist; the deliverable is still the open measurement. Not financial advice; the project never executes trades.
+Public endpoints can change, rate-limit, or omit observations; scheduled runs are best-effort. Holder counts cannot reveal unique holder identities or early-wallet dumping. Rolling volume is not an organic-volume measure. Selection bias, missingness, survivorship, regime shifts, multiple comparisons, and small sample sizes constrain inference. A null result is a valid result. This project is research telemetry, not financial advice.
