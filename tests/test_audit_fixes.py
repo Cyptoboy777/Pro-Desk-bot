@@ -4,7 +4,6 @@ import math
 import os
 import sys
 
-import yaml
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, ROOT)
@@ -99,7 +98,7 @@ def test_workflows_are_active_bounded_and_mirror_actions():
         assert "NOT ACTIVE" not in txt and "--max-fetch" in txt and "GITHUB_STEP_SUMMARY" in txt
         import re
         assert not re.search(r"\.py[^\n]*\|\| true", txt)                # no python step may hide its failure (only the optional branch fetch may)
-        assert yaml.safe_load(txt)["jobs"]["run"]["timeout-minutes"] == 10
+        assert re.search(r"^    timeout-minutes: 10$", txt, re.M)          # whole job bounded at 10 minutes
     assert "actions" in open(os.path.join(ROOT, ".github/workflows/pages-api.yml")).read().split("for f in")[1].split(";")[0]
 
 
