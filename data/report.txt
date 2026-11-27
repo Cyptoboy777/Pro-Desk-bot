@@ -1,18 +1,18 @@
-547 tokens recorded, 61 passed the Risk agent
+570 tokens recorded, 64 passed the Risk agent
 
 == about 1h after first sighting (raw price change, before any costs)
 PASSED    n=0
 REJECTED  n=0
-(528 outcomes excluded: measured later than 1.5x the horizon because runs were sparse)
+(534 outcomes excluded: measured later than 1.5x the horizon because runs were sparse)
 
 == about 6h after first sighting (raw price change, before any costs)
 PASSED    n= 35 | median   -87.6% | mean    -51.3% | up  14% | rugged/gone 20/35 | measured after 8.0h
 REJECTED  n=275 | median   -16.9% | mean    -20.0% | up  19% | rugged/gone 34/133 | measured after 8.0h
-(218 outcomes excluded: measured later than 1.5x the horizon because runs were sparse)
+(224 outcomes excluded: measured later than 1.5x the horizon because runs were sparse)
 
 == about 24h after first sighting (raw price change, before any costs)
-PASSED    n= 49 | median   -98.3% | mean    -65.6% | up  10% | rugged/gone 37/49 | measured after 25.1h
-REJECTED  n=387 | median   -26.8% | mean    -20.0% | up  16% | rugged/gone 61/202 | measured after 26.1h
+PASSED    n= 55 | median   -98.4% | mean    -50.2% | up  11% | rugged/gone 41/55 | measured after 25.5h
+REJECTED  n=429 | median   -30.5% | mean    -21.1% | up  15% | rugged/gone 68/224 | measured after 26.1h
 (22 outcomes excluded: measured later than 1.5x the horizon because runs were sparse)
 
 Small samples mean nothing. Wait for 100+ tokens per group before trusting any number.
