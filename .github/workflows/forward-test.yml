@@ -1,9 +1,7 @@
-# NOT ACTIVE. To turn on, copy this file to .github/workflows/forward-test.yml
-# (GitHub web UI: Add file > Create new file, works from a phone).
-#
-# Scheduled every 30 minutes (GitHub often delays or skips scheduled runs, so real cadence can be several hours): record new Solana tokens + the Risk agent's verdict,
-# score tokens that are 1h / 6h / 24h old, advance the live paper trader (data/paper_report.txt), and publish data/ and data/report.txt to the
-# `live-data` branch. Read-only public APIs, no secrets, no keys, no orders.
+# Scheduled every 30 minutes. GitHub often delays or skips scheduled runs, so the real cadence can be several hours.
+# Each run records new Solana tokens + verdicts, takes due time-window snapshots (T+30m/2h/6h) and outcomes (+1h/6h/24h)
+# within a bounded fetch budget, advances the paper trader, builds the public JSON API and publishes everything
+# append-only to the `live-data` branch. Read-only public APIs, no wallet, no keys, no orders.
 name: Forward test
 
 on:
@@ -20,6 +18,9 @@ jobs:
   run:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      PYTHONPATH: /tmp/app
+      MAX_FETCH: "60"            # per-run cap on follow-up fetches (snapshots and outcomes each); leftovers stay due for the next run
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,37 +29,52 @@ jobs:
       - name: Keep the code, switch to the data branch
         run: |
           mkdir -p /tmp/app
-          cp -r collector.py paper_live.py insights.py notify.py api_export.py desk /tmp/app
+          cp -r collector.py paper_live.py insights.py notify.py api_export.py generate_report.py desk /tmp/app
           git fetch origin live-data || true
           if git rev-parse --verify -q origin/live-data >/dev/null; then
             git checkout -q -B live-data origin/live-data
           else
             git checkout -q --orphan live-data && git rm -rq --cached . && git clean -fdq
           fi
-      - name: Collect, score, report
-        env:
-          PYTHONPATH: /tmp/app
+      - name: Collect, score, report (bounded; every step status is logged)
+        timeout-minutes: 7
         run: |
           mkdir -p data
-          python3 /tmp/app/collector.py collect --data data/snapshots.jsonl || true
-          python3 /tmp/app/collector.py score   --data data/snapshots.jsonl || true
-          python3 /tmp/app/collector.py report  --data data/snapshots.jsonl > data/report.txt
-          python3 /tmp/app/paper_live.py run > data/paper_report.txt 2>&1 || true
-          python3 /tmp/app/paper_live.py report --table > data/morning_report.md || true
-          python3 /tmp/app/insights.py --data data/snapshots.jsonl > data/insights.md 2>&1 || true
-      - name: Build the public JSON API (static, versioned)
-        env:
-          PYTHONPATH: /tmp/app
-        run: python3 /tmp/app/api_export.py --data data/snapshots.jsonl --state data/paper_state.json --out data/api/v1 || true
+          : > /tmp/status.md
+          step() {  # step <name> <outfile or -> <command...>
+            name="$1"; out="$2"; shift 2
+            start=$(date +%s)
+            code=0
+            if [ "$out" = "-" ]; then timeout 240 "$@" || code=$?; else timeout 240 "$@" > "$out" 2>&1 || code=$?; fi
+            secs=$(( $(date +%s) - start ))
+            if [ $code -eq 0 ]; then echo "| $name | ok | ${secs}s |" >> /tmp/status.md
+            else
+              echo "| $name | FAILED (exit $code) | ${secs}s |" >> /tmp/status.md
+              echo "::warning title=$name failed::exit code $code after ${secs}s (see the step log; the run continues so other data is still published)"
+              if [ "$out" != "-" ]; then tail -n 5 "$out" | sed 's/^/    /'; fi
+            fi
+          }
+          step "collect new tokens"            -  python3 /tmp/app/collector.py collect --data data/snapshots.jsonl
+          step "score snapshots and outcomes"  -  python3 /tmp/app/collector.py score --data data/snapshots.jsonl --max-fetch "$MAX_FETCH"
+          step "forward-test report"           data/report.txt         python3 /tmp/app/collector.py report --data data/snapshots.jsonl
+          step "paper trader run"              data/paper_report.txt   python3 /tmp/app/paper_live.py run
+          step "paper morning report"          data/morning_report.md  python3 /tmp/app/paper_live.py report --table
+          step "insights"                      data/insights.md        python3 /tmp/app/insights.py --data data/snapshots.jsonl
+          step "build public JSON API"         -  python3 /tmp/app/api_export.py --data data/snapshots.jsonl --state data/paper_state.json --out data/api/v1
+          step "empirical report"              data/REPORT.md          python3 /tmp/app/generate_report.py --api data/api/v1 --out data/REPORT.md
+          { echo "### Forward-test step status"; echo; echo "| step | status | time |"; echo "|---|---|---|"; cat /tmp/status.md; } | tee -a "$GITHUB_STEP_SUMMARY"
+          # collecting and scoring are the job's purpose: if BOTH failed nothing new was recorded, so fail loudly
+          if grep -q "collect new tokens | FAILED" /tmp/status.md && grep -q "score snapshots and outcomes | FAILED" /tmp/status.md; then
+            echo "::error::collect and score both failed; nothing new was recorded"; exit 1
+          fi
       - name: Telegram alerts (does nothing unless both secrets are set)
         env:
-          PYTHONPATH: /tmp/app
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python3 /tmp/app/notify.py || true
+        run: python3 /tmp/app/notify.py || echo "::warning title=Telegram alerts failed::notify.py exited non-zero"
       - name: Publish data (append-only, no force push)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || { git commit -qm "forward test $(date -u +%FT%TZ)"; git push origin live-data; }
+          git diff --cached --quiet && echo "nothing new to publish" || { git commit -qm "forward test $(date -u +%FT%TZ)"; git push origin live-data; }

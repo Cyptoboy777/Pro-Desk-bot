@@ -16,6 +16,7 @@ a{color:var(--purple)}.sub{color:var(--muted)}
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.kpi .v{font-size:22px;font-weight:700}.kpi .l{color:var(--muted);font-size:11px}
 .badge{display:inline-block;border:1px solid;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;letter-spacing:.04em}
 .NO_EDGE{color:var(--yellow);border-color:var(--yellow)}.INSUFFICIENT_DATA{color:var(--muted);border-color:var(--muted)}.STATISTICAL_EDGE_DETECTED{color:var(--green);border-color:var(--green)}
+.st{display:inline-block;border:1px solid var(--muted);border-radius:5px;padding:0 6px;font-size:11px;white-space:nowrap}.st.INSUFFICIENT_DATA{color:var(--red);border-color:var(--red)}.st.PRELIMINARY{color:var(--yellow);border-color:var(--yellow)}.st.STATISTICALLY_POWERED{color:var(--green);border-color:var(--green)}
 .pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--yellow)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .sl{display:grid;grid-template-columns:150px 1fr 90px;gap:10px;align-items:center;margin:8px 0}.sl output{text-align:right}
@@ -52,7 +53,7 @@ nav{display:flex;flex-wrap:wrap;gap:14px}
  </div>
 
  <div class="panel"><h2>Which signals go with bad outcomes (24h)</h2><div class="scroll"><table id="feat"></table></div>
-  <div class="sub">precision = share of flagged tokens that went bad. recall = share of bad tokens that were flagged. Correlated with each other and with market regime: not causal.</div></div>
+  <div class="sub">precision = share of flagged tokens that went bad. recall = share of bad tokens that were flagged. Sample n = the smaller of the flagged and clear groups. Lift = bad rate if flagged / baseline. p = two-sided Fisher exact, not adjusted for the many signals tested. * = intervals do not overlap. Correlated with each other and with market regime: not causal.</div></div>
 
  <div class="panel"><h2>Filter backtest simulator</h2>
   <div class="sub">Recomputed in your browser on the recorded 24h-labelled tokens. Tuning on this same data overfits: treat a good-looking result as a hypothesis for new data.</div>
@@ -103,9 +104,14 @@ function summary(s){
   else $("eqNote").textContent="no equity curve yet";
   $("status").textContent="data generated "+new Date(s.generated_at*1000).toUTCString();$("status").className="sub";
 }
+const STLAB={INSUFFICIENT_DATA:"Low Sample n < 30",PRELIMINARY:"Preliminary 30 <= n < 100",STATISTICALLY_POWERED:"Powered n >= 100"};
 function features(f){
-  const t=$("feat");t.textContent="";const h=mk("tr");["signal","flagged n","bad if flagged","bad if clear","precision","recall","corr"].forEach(x=>h.appendChild(mk("th",x)));t.appendChild(h);
-  f.features.forEach(x=>{const r=mk("tr");[x.label+(x.separates?" *":""),x.n_flagged+"/"+x.n_known,pct(x.bad_rate_flagged),pct(x.bad_rate_clear),pct(x.precision),pct(x.recall),x.correlation_with_bad==null?"-":x.correlation_with_bad.toFixed(2)].forEach(v=>r.appendChild(mk("td",v)));t.appendChild(r);});
+  const t=$("feat");t.textContent="";const h=mk("tr");["signal","sample","flagged n","bad if flagged","bad if clear","lift","p (Fisher)","precision","recall"].forEach(x=>h.appendChild(mk("th",x)));t.appendChild(h);
+  const num=(v,d)=>v==null?"-":(v<0.001&&v>0?v.toExponential(1):v.toFixed(d));
+  f.features.forEach(x=>{const r=mk("tr");
+    const c0=mk("td",x.label+(x.separates?" *":""));r.appendChild(c0);
+    const st=mk("td");st.appendChild(mk("span",(STLAB[x.sample_status]||x.sample_status||"-")+(x.sample_n!=null?" (n="+x.sample_n+")":""),"st "+(x.sample_status||"")));r.appendChild(st);
+    [x.n_flagged+"/"+x.n_known,pct(x.bad_rate_flagged),pct(x.bad_rate_clear),x.lift_over_baseline==null?"-":num(x.lift_over_baseline,2)+"x",num(x.p_value,3),pct(x.precision),pct(x.recall)].forEach(v=>r.appendChild(mk("td",v)));t.appendChild(r);});
 }
 const slid=["liq","top","age","vl"];
 function simulate(){

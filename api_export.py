@@ -9,13 +9,19 @@ import argparse
 import json
 import math
 import os
+import statistics
 import time
 
-from collector import load, HORIZONS_H, LATE
+from collector import load, HORIZONS_H, LATE, SNAPSHOT_WINDOWS_MIN
 from insights import labelled, wilson
 from desk.risk_engine import assess, DEFAULT, ENGINE_VERSION
 
 SCHEMA = "1.0"
+CUTOFF = "2026-11-24"   # first_seen on/after this UTC date = held-out, post-design window for the v2 rubric
+LOW_N, POWERED_N = 30, 100
+# Solana Actions routing file. Informational only: it maps to a read-only risk-check route (see sdk/action_server.py);
+# no transaction, wallet or signing route exists anywhere in this project.
+ACTIONS = {"rules": [{"pathPattern": "/api/v1/actions/*", "apiPath": "/api/v1/actions/*"}]}
 MIN_GROUP = 30          # per group, before any edge claim is even considered
 EDGE_TEXT = {"INSUFFICIENT_DATA": f"fewer than {MIN_GROUP} judged tokens in the pass or reject group: no claim possible",
              "NO_EDGE": "pass-group survival is not separable from reject-group survival (95% Wilson intervals overlap, or pass is worse)",
@@ -42,6 +48,22 @@ def _engine_block(data, passed_fn):
     r = _grp([b for e, b in data if not passed_fn(e)])
     st = edge_status(p, r)
     return {"pass": p, "reject": r, "edge_status": st, "edge_note": EDGE_TEXT[st]}
+
+
+def sample_status(n):
+    return "INSUFFICIENT_DATA" if n < LOW_N else ("PRELIMINARY" if n < POWERED_N else "STATISTICALLY_POWERED")
+
+
+def fisher_exact(a, b, c, d):
+    """Two-sided Fisher exact p-value for [[a,b],[c,d]] using only the standard library."""
+    r1, r2, c1, n = a + b, c + d, a + c, a + b + c + d
+    if n == 0:
+        return None
+    lo, hi = max(0, c1 - r2), min(r1, c1)
+    denom = math.comb(n, c1)
+    prob = lambda x: math.comb(r1, x) * math.comb(r2, c1 - x) / denom
+    p_obs = prob(a)
+    return min(1.0, sum(prob(x) for x in range(lo, hi + 1) if prob(x) <= p_obs * (1 + 1e-9)))
 
 
 def _signals(cfg=DEFAULT):
@@ -85,7 +107,14 @@ def features(data):
         prec = tp / len(flagged) if flagged else None
         rec = tp / k_bad if k_bad else None
         c = _corr([1.0 if f else 0.0 for f, _ in known], [1.0 if b else 0.0 for _, b in known])
-        out.append({"key": key, "label": label, "n_known": len(known), "n_flagged": len(flagged),
+        base = k_bad / len(known) if known else None
+        a_, b_, c_, d_ = tp, len(flagged) - tp, sum(b for f, b in known if not f), len(clear) - sum(clear)
+        n_small = min(len(flagged), len(clear))
+        pv = fisher_exact(a_, b_, c_, d_) if flagged and clear else None
+        out.append({"key": key, "label": label, "n_known": len(known), "n_flagged": len(flagged), "n_clear": len(clear),
+                    "sample_n": n_small, "sample_status": sample_status(n_small),
+                    "lift_over_baseline": None if not flagged or not base else round(tp / len(flagged) / base, 4),
+                    "p_value": None if pv is None else float(f"{pv:.4g}"),
                     "bad_rate_flagged": _grp(flagged)["bad_rate"], "bad_ci95_flagged": _grp(flagged)["bad_ci95"],
                     "bad_rate_clear": _grp(clear)["bad_rate"], "bad_ci95_clear": _grp(clear)["bad_ci95"],
                     "precision": None if prec is None else round(prec, 4), "recall": None if rec is None else round(rec, 4),
@@ -95,6 +124,8 @@ def features(data):
     out.sort(key=lambda f: -abs(f["correlation_with_bad"] or 0))
     return {"schema": SCHEMA, "horizon_h": 24, "base_bad_rate": round(total_bad / len(data), 4) if data else None,
             "n": len(data), "ranked_by": "abs(correlation_with_bad)",
+            "sample_status_rule": "sample_n = size of the smaller of the flagged and clear groups; INSUFFICIENT_DATA n<30, PRELIMINARY 30<=n<100, STATISTICALLY_POWERED n>=100",
+            "p_value_method": "two-sided Fisher exact test, flagged vs clear; unadjusted for multiple comparisons",
             "note": "precision = P(bad | flagged); recall = P(flagged | bad). 'separates' means the 95% intervals do not overlap. "
                     "Features are correlated with each other and with market regime; this is not causal.",
             "features": out}
@@ -111,7 +142,53 @@ def paper_block(state_path):
             "assumptions": "fills use a 0.3% fee plus slippage/price-impact model against real liquidity; no wallet, no orders"}
 
 
-def build(rows, state_path=None, now=None):
+def _cutoff_ts(cutoff):
+    import datetime
+    return datetime.datetime.fromisoformat(cutoff).replace(tzinfo=datetime.timezone.utc).timestamp()
+
+
+def oot_block(rows, cutoff=CUTOFF):
+    """Out-of-time evaluation: ONLY tokens first seen on/after `cutoff` (the window after the v2 rubric was designed)."""
+    cut = _cutoff_ts(cutoff)
+    d = [(e, b) for e, b in labelled(rows, 24) if e["ts"] >= cut]
+    v1, v2 = _engine_block(d, lambda e: e["pass"]), _engine_block(d, lambda e: assess(e)["passed"])
+    return {"cutoff": cutoff, "judged_24h": len(d), "v1": v1, "v2_shadow": v2,
+            "note": "held-out window: v2 defaults were designed and locked on tokens first seen before the cutoff"}
+
+
+def _med(xs):
+    xs = [x for x in xs if x is not None]
+    return round(statistics.median(xs), 4) if xs else None
+
+
+def time_series_coverage(rows, now):
+    """Observation counts and deltas at T+0m/30m/2h/6h/24h. `expected` = tokens old enough to have been observed."""
+    entries = [r for r in rows if r.get("kind") == "entry"]
+    snaps = {}
+    for r in rows:
+        if r.get("kind") == "snapshot":
+            snaps.setdefault(r["window_min"], {})[r["mint"]] = r
+    out = {}
+    for w in SNAPSHOT_WINDOWS_MIN:
+        label = "T+0m" if w == 0 else (f"T+{w}m" if w < 120 else f"T+{w // 60}h")
+        expected = sum(1 for e in entries if now >= e["ts"] + w * 60)
+        if w == 0:
+            observed, got = len(entries), []
+        else:
+            got = list(snaps.get(w, {}).values())
+            observed = len(got)
+        missing = max(0, expected - observed)
+        out[label] = {"window_min": w, "expected": expected, "observed": observed, "missing": missing,
+                      "missing_observation": "NONE" if missing == 0 else ("ALL" if observed == 0 else "PARTIAL"),
+                      "median_lp_delta_pct": _med([x.get("lp_delta_pct") for x in got]),
+                      "median_holder_growth_per_h": _med([x.get("holder_growth_rate") for x in got]),
+                      "median_volume_decay_ratio": _med([x.get("volume_decay_ratio") for x in got]),
+                      "gone": sum(1 for x in got if x.get("gone"))}
+    return {"windows": out, "note": "Snapshots exist only for tokens recorded after time-window collection began; older tokens show as missing. "
+            "Holder deltas are holder-COUNT proxies; volume ratios use rolling 24h volume; no wallet identities are observed."}
+
+
+def build(rows, state_path=None, now=None, cutoff=CUTOFF):
     now = time.time() if now is None else now
     entries = [r for r in rows if r["kind"] == "entry"]
     data = labelled(rows, 24)
@@ -128,6 +205,7 @@ def build(rows, state_path=None, now=None):
                "edge_status": v1["edge_status"], "edge_note": v1["edge_note"],
                "edge_status_v2_shadow": v2["edge_status"], "edge_note_v2_shadow": v2["edge_note"],
                "pass_vs_reject_24h": {"v1": {k: v1[k] for k in ("pass", "reject")}, "v2_shadow": {k: v2[k] for k in ("pass", "reject")}},
+               "out_of_time": oot_block(rows, cutoff), "time_series_coverage": time_series_coverage(rows, now),
                "horizons": horizons, "paper": paper_block(state_path) if state_path else None,
                "disclaimer": "Research telemetry only. Not financial advice. This project never executes trades."}
     recent = []
@@ -143,7 +221,7 @@ def build(rows, state_path=None, now=None):
                                                "price_change_pct": round((outs[(e["mint"], h)]["price"] / e["price"] - 1) * 100, 1) if e["price"] else None}
                                               if (e["mint"], h) in outs else None) for h in HORIZONS_H},
                        "bad_24h": ok24.get(e["mint"])})
-    return {"summary": summary, "features": features(data),
+    return {"summary": summary, "features": features(data), "actions": ACTIONS,
             "recent_scans": {"schema": SCHEMA, "generated_at": int(now), "count": len(recent), "scans": recent},
             "rubric": {"schema": SCHEMA, "engine_version": ENGINE_VERSION, "config": DEFAULT.to_dict(),
                        "note": "Defaults designed on tokens first seen before 2026-11-24, then locked. See METHODOLOGY.md."}}
@@ -158,19 +236,25 @@ def write(out_dir, built):
     return list(built)
 
 
-def dataset(rows):
+def dataset(rows, now=None):
     keys = ("mint", "symbol", "ts", "price", "liq", "vol24", "age_min", "top10", "lp", "mcap", "top1", "insiders", "buy_ratio_h1",
             "total_holders", "creator_pct", "chg_h1", "has_socials", "auth_ok", "flags", "pass")
     outs = {(r["mint"], r["horizon_h"]): r for r in rows if r["kind"] == "outcome"}
     lab = {e["mint"]: b for e, b in labelled(rows, 24)}
     res = []
+    snaps = {}
+    for r in rows:
+        if r.get("kind") == "snapshot":
+            snaps.setdefault(r["mint"], {})[r["window_min"]] = {k: r.get(k) for k in ("lp_delta_pct", "holder_growth_rate", "volume_decay_ratio", "gone")}
     for e in (r for r in rows if r["kind"] == "entry"):
         d = {k: e.get(k) for k in keys}
+        d["snapshots"] = {f"{w}m": v for w, v in sorted(snaps.get(e["mint"], {}).items())}
         o = outs.get((e["mint"], 24))
         d["bad_24h"] = lab.get(e["mint"])
         d["ret_24h"] = (round(o["price"] / e["price"] - 1, 4) if o and e["price"] and not o["gone"] and d["bad_24h"] is not None else (-1.0 if o and o["gone"] and d["bad_24h"] is not None else None))
         res.append(d)
-    return {"schema": SCHEMA, "count": len(res), "rows": res}
+    now = time.time() if now is None else now
+    return {"schema": SCHEMA, "count": len(res), "snapshots_summary": time_series_coverage(rows, now), "rows": res}
 
 
 if __name__ == "__main__":

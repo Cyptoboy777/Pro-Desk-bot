@@ -20,7 +20,7 @@ Forward test, 24h horizon, "bad" = pair vanished, or liquidity or price at least
 | v1 rules (live) | 41/49 = 84% (CI 71-91%) | 77/202 = 38% (CI 32-45%) | `NO_EDGE` |
 | v2 rubric (shadow) | 22/35 = 63% (CI 46-77%) | 96/216 = 44% (CI 38-51%) | `NO_EDGE` |
 
-(528 tokens recorded, 251 judged, as of 2026-11-27.)
+(**547 recorded tokens, 251 judged at 24h**, as of 2026-11-27. Status stays `NO_EDGE`.)
 
 What this means: the basic static checks (authorities, LP lock, holder count, RugCheck flags) do **not** protect against 24h failure; tokens that pass them did worse than rejected ones, partly because passing needs liquidity of $20k+, which selects tokens in their most volatile phase. The v2 rubric was designed on tokens first seen before 2026-11-24 and locked; on the small post-lock sample (n=50) it also shows no separation. **We do not claim to have solved the false-pass problem.** The value of this project is the open, honest measurement that lets anyone test ideas against it. The paper desk is currently below its starting equity.
 
@@ -69,11 +69,12 @@ Static files, CORS-friendly, versioned by path. Base: `https://cyptoboy777.githu
 
 | file | contents |
 |---|---|
-| `summary.json` | sample size, pass vs reject survival with 95% Wilson CIs for v1 and v2-shadow at 1h/6h/24h, `edge_status` (`INSUFFICIENT_DATA`, `NO_EDGE`, `STATISTICAL_EDGE_DETECTED`), paper equity curve |
-| `features.json` | signals ranked by correlation with bad outcomes, with precision, recall and intervals |
+| `summary.json` | sample size, pass vs reject survival with 95% Wilson CIs for v1 and v2-shadow at 1h/6h/24h, an `out_of_time` block (tokens first seen on/after 2026-11-24 only), `time_series_coverage` (T+0m/30m/2h/6h/24h observed vs missing, LP/holder/volume deltas), `edge_status` (`INSUFFICIENT_DATA`, `NO_EDGE`, `STATISTICAL_EDGE_DETECTED`), paper equity curve |
+| `features.json` | signals ranked by correlation with bad outcomes, with precision, recall, intervals, `sample_status` (`INSUFFICIENT_DATA` n<30, `PRELIMINARY` 30-99, `STATISTICALLY_POWERED` 100+), `lift_over_baseline` and a two-sided Fisher exact `p_value` |
 | `recent_scans.json` | latest 200 evaluations with v2 score, reasons and outcomes |
 | `rubric.json` | the exact scoring configuration |
-| `dataset.json` | 24h-labelled rows used by the browser simulator |
+| `dataset.json` | rows used by the browser simulator, with per-token snapshot deltas and a `snapshots_summary` |
+| `actions.json` | Solana Actions routing file (`/api/v1/actions/*`), informational only; the dynamic route runs in `sdk/action_server.py`, not on static Pages |
 
 ```js
 const s = await (await fetch("https://cyptoboy777.github.io/Pro-Desk-bot/api/v1/summary.json")).json();
@@ -82,9 +83,22 @@ console.log(s.edge_status, s.pass_vs_reject_24h.v1.pass.survival_ci95);
 
 Edge status rule: `INSUFFICIENT_DATA` until both groups have 30+ judged tokens; `STATISTICAL_EDGE_DETECTED` only if the pass group's bad-outcome interval lies entirely below the reject group's; otherwise `NO_EDGE`. It describes survival, not profit.
 
+## SDKs and report
+
+```js
+const { TelemetryClient } = require("./sdk/js/pro-desk-telemetry.js");   // Node 18+/browsers, zero dependencies
+const c = new TelemetryClient({ ttlMs: 60000 });
+console.log((await c.getSummary()).edge_status, (await c.getActions()).rules);
+```
+```python
+from sdk.python.pro_desk_telemetry import TelemetryClient
+print(TelemetryClient().get_features()["features"][0]["sample_status"])
+```
+Both validate each payload's shape and cache by TTL. Packages on npm/PyPI are planned, not published yet. `python generate_report.py --api docs/api/v1` regenerates [REPORT.md](REPORT.md); its out-of-time table uses only tokens first seen on/after 2026-11-24.
+
 ## Layout
 
-`desk/` agents, risk engine, live parsers · `collector.py` forward test · `insights.py` statistics · `api_export.py` JSON API · `paper_live.py` live paper trader (0.3% fee + slippage model) · `docs/` dashboards and API · `tests/` pytest suite · `bot/` read-only Telegram risk checker · [METHODOLOGY.md](METHODOLOGY.md) · [GRANT_PROPOSAL.md](GRANT_PROPOSAL.md)
+`sdk/` read-only JS and Python clients + reference risk-check server · `generate_report.py` builds `REPORT.md` · `desk/` agents, risk engine, live parsers · `collector.py` forward test · `insights.py` statistics · `api_export.py` JSON API · `paper_live.py` live paper trader (0.3% fee + slippage model) · `docs/` dashboards and API · `tests/` pytest suite · `bot/` read-only Telegram risk checker · [METHODOLOGY.md](METHODOLOGY.md) · [GRANT_PROPOSAL.md](GRANT_PROPOSAL.md)
 
 ## Paper trading, alerts and the original desk
 

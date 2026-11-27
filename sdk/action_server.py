@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 BASE = Path(__file__).resolve().parents[1]
+ACTIONS = {"rules": [{"pathPattern": "/api/v1/actions/*", "apiPath": "/api/v1/actions/*"}]}   # same as api_export.ACTIONS
 
 
 def risk_result(mint, dataset_path=None, summary_path=None):
@@ -39,7 +40,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == "/actions.json":
-            body, status = {"rules": [], "hosts": ["cyptoboy777.github.io"], "version": 1}, 200
+            body, status = ACTIONS, 200
         elif parsed.path == "/api/v1/actions/risk-check":
             mint = parse_qs(parsed.query).get("mint", [""])[0]
             body = risk_result(mint)

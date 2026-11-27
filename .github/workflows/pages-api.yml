@@ -18,7 +18,7 @@ jobs:
         run: |
           git fetch origin live-data
           mkdir -p docs/api/v1
-          for f in summary features recent_scans rubric dataset; do
+          for f in summary features recent_scans rubric dataset actions; do
             git show origin/live-data:data/api/v1/$f.json > docs/api/v1/$f.json.tmp && mv docs/api/v1/$f.json.tmp docs/api/v1/$f.json || rm -f docs/api/v1/$f.json.tmp
           done
       - name: Commit if changed

@@ -75,17 +75,20 @@ def snapshot_features(entry, token, observed_at):
     }
 
 
-def score_snapshots(fetch_token, path, now=None):
+def score_snapshots(fetch_token, path, now=None, max_fetch=None):
     """Append one observation per entry/window when due; retries transient fetch failures."""
     now = time.time() if now is None else now
     rows = load(path)
     done = {(r["mint"], r.get("window_min")) for r in rows if r.get("kind") == "snapshot"}
     entries = {r["mint"]: r for r in rows if r.get("kind") == "entry"}
-    out = []
+    out, fetched = [], 0
     for mint, entry in entries.items():
         for window in SNAPSHOT_WINDOWS_MIN:
             if window == 0 or (mint, window) in done or now < entry["ts"] + window * 60:
                 continue
+            if max_fetch is not None and fetched >= max_fetch:
+                break                         # budget spent: the rest stays due and is picked up next run
+            fetched += 1
             try:
                 token = fetch_token(mint)
             except Exception:
@@ -100,15 +103,18 @@ def score_snapshots(fetch_token, path, now=None):
     return len(out)
 
 
-def score(fetch_token, path, now=None):
+def score(fetch_token, path, now=None, max_fetch=None):
     now = time.time() if now is None else now
     rows = load(path)
     done = {(r["mint"], r["horizon_h"]) for r in rows if r["kind"] == "outcome"}
-    out = []
+    out, fetched = [], 0
     for e in (r for r in rows if r["kind"] == "entry"):
         for h in HORIZONS_H:
             if (e["mint"], h) in done or now < e["ts"] + h * 3600:
                 continue
+            if max_fetch is not None and fetched >= max_fetch:
+                break
+            fetched += 1
             try:
                 t = fetch_token(e["mint"])
             except Exception:
@@ -167,13 +173,14 @@ if __name__ == "__main__":
     ap.add_argument("cmd", choices=["collect", "score", "report"])
     ap.add_argument("--data", default="data/snapshots.jsonl")
     ap.add_argument("--limit", type=int, default=30)
+    ap.add_argument("--max-fetch", type=int, default=60, help="cap on follow-up fetches per run, per kind (keeps runs inside the Actions timeout)")
     a = ap.parse_args()
     if a.cmd == "collect":
         mints = live.latest_solana_mints(a.limit)
         print("recorded", collect(polite(live.fetch_token), mints, a.data), "of", len(mints), "tokens")
     elif a.cmd == "score":
         fetch = polite(live.fetch_token)
-        print("recorded", score_snapshots(fetch, a.data), "time-window snapshots")
-        print("scored", score(fetch, a.data), "outcomes")
+        print("recorded", score_snapshots(fetch, a.data, max_fetch=a.max_fetch), "time-window snapshots")
+        print("scored", score(fetch, a.data, max_fetch=a.max_fetch), "outcomes")
     else:
         print(report(a.data))
