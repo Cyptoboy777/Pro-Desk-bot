@@ -38,3 +38,6 @@
 {"t":22,"kind":"FILTERED","sym":"HI","reason":"liquidity $7,026","ts":"2026-11-26 19:23"}
 {"t":23,"kind":"FILTERED","sym":"CHRISTMAS","reason":"liquidity $18,878","ts":"2026-11-27 05:13"}
 {"t":23,"kind":"FILTERED","sym":"survive","reason":"liquidity $7,529","ts":"2026-11-27 05:13"}
+{"t":24,"kind":"FILTERED","sym":"HI","reason":"liquidity $10,260","ts":"2026-11-27 14:08"}
+{"t":24,"kind":"FILTERED","sym":"survive","reason":"liquidity $5,121","ts":"2026-11-27 14:08"}
+{"t":24,"kind":"FILTERED","sym":"Gabriel","reason":"liquidity $12,457","ts":"2026-11-27 14:08"}
