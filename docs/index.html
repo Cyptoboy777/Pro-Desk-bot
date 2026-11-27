@@ -29,33 +29,68 @@ input[type=text]{width:100%}button{cursor:pointer}button:hover{border-color:var(
 ul{margin:6px 0;padding-left:20px}canvas{max-width:100%}
 nav{display:flex;flex-wrap:wrap;gap:14px}
 @media(max-width:700px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}.sl{grid-template-columns:1fr 70px;}.sl label{grid-column:1/-1}}
+
+/* ---- motion layer ---- */
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:14px;padding:26px 18px 20px;background:radial-gradient(120% 140% at 80% 0%,#2a2450 0%,#16151d 55%,#121216 100%)}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.hero>*:not(canvas){position:relative}
+.hero h1{font-size:clamp(24px,6vw,38px);line-height:1.1;letter-spacing:-.02em}
+.hero h1 .w{display:inline-block;opacity:0;transform:translateY(14px);animation:rise .7s cubic-bezier(.2,.8,.2,1) forwards}
+.hero .lede{max-width:560px;margin:10px 0 14px;opacity:0;animation:rise .8s .45s forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+.badge.NO_EDGE,.badge.INSUFFICIENT_DATA{animation:glow 2.8s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 14px -2px currentColor}}
+.panel{position:relative;transition:border-color .25s,transform .25s}
+.panel::before{content:"";position:absolute;inset:0;border-radius:10px;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(260px circle at var(--mx,50%) var(--my,0),rgba(154,140,255,.13),transparent 70%)}
+.panel:hover{border-color:#5a5575}.panel:hover::before{opacity:1}
+.rv{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}.rv.in{opacity:1;transform:none}
+.fl-track{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:6px 0 14px;padding-top:6px}
+.fl-rail{position:absolute;left:8%;right:8%;top:24px;height:2px;background:var(--line);border-radius:2px}
+.fl-pulse{position:absolute;top:-4px;left:var(--p,0%);width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);transition:left .9s cubic-bezier(.2,.8,.2,1)}
+.fl-step{position:relative;background:none;border:0;color:var(--muted);display:grid;justify-items:center;gap:6px;padding:0;min-height:56px;cursor:pointer}
+.fl-n{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:#14141a;transition:all .3s}
+.fl-t{font-size:12px}.fl-step.done .fl-n{border-color:var(--green);color:var(--green)}
+.fl-step.on .fl-n{border-color:var(--purple);color:#fff;background:var(--purple);transform:scale(1.14);box-shadow:0 0 16px -2px var(--purple)}.fl-step.on .fl-t{color:var(--text)}
+.fl-info{min-height:84px}.fl-info.swap{animation:swap .45s ease}@keyframes swap{from{opacity:0;transform:translateX(10px)}}
+.fl-it{font-size:16px;font-weight:700}.fl-iv{color:var(--green);margin-top:4px}.fl-play{margin-top:8px}
+.rp-cv{width:100%;height:150px;display:block;margin:10px 0 4px}.rp-read{font-weight:700;min-height:22px;margin-top:6px}
+select{font:inherit;color:var(--text);background:#14141a;border:1px solid var(--line);border-radius:8px;padding:9px;min-height:40px;max-width:100%}
+.meter i{transition:width .9s cubic-bezier(.2,.8,.2,1)}
+#insOut li{animation:rise .5s both}#insOut li:nth-child(2){animation-delay:.08s}#insOut li:nth-child(3){animation-delay:.16s}#insOut li:nth-child(n+4){animation-delay:.24s}
+.scan{position:relative;overflow:hidden}.scan::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(154,140,255,.35) 50%,transparent 70%);animation:sweep .8s ease-out}
+@keyframes sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+@media(max-width:700px){.fl-track{grid-template-columns:repeat(3,1fr);row-gap:14px}.fl-rail{display:none}.fl-pulse{display:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rv,.hero h1 .w,.hero .lede{opacity:1!important;transform:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
- <div>
-  <h1>Solana Token <em>Risk &amp; Forward-Test</em> Telemetry</h1>
-  <div class="sub">Open research data on new Solana tokens. Read-only: no wallet, no keys, no trades. <a href="https://github.com/Cyptoboy777/Pro-Desk-bot">Source (MIT)</a></div>
+ <header class="hero">
+  <canvas id="heroCv" aria-hidden="true"></canvas>
+  <h1><span class="w" style="animation-delay:.05s">Which</span> <span class="w" style="animation-delay:.12s">Solana</span> <span class="w" style="animation-delay:.19s">risk</span> <span class="w" style="animation-delay:.26s">signals</span> <span class="w" style="animation-delay:.33s"><em>actually</em></span> <span class="w" style="animation-delay:.40s">work?</span></h1>
+  <div class="lede sub">Open, read-only forward test of new Solana tokens: record, wait, judge, publish. No wallet, no keys, no trades. <a href="https://github.com/Cyptoboy777/Pro-Desk-bot">Source (MIT)</a></div>
   <nav><a href="live.html">Live paper desk</a><a href="api/v1/summary.json">summary.json</a><a href="api/v1/features.json">features.json</a><a href="api/v1/recent_scans.json">recent_scans.json</a><a href="sim.html">Simulated demo</a></nav>
   <div id="status" class="warn">loading…</div>
- </div>
+ </header>
 
- <div class="panel"><h2>Current statistical edge status</h2>
+ <div class="panel rv"><h2>How the telemetry works (tap a step)</h2><div id="flow"><span class="sub">loading…</span></div></div>
+
+ <div class="panel rv"><h2>Current statistical edge status</h2>
   <div><span id="edge" class="badge INSUFFICIENT_DATA">…</span> <span class="sub">v1 rules (live)</span> &nbsp; <span id="edge2" class="badge INSUFFICIENT_DATA">…</span> <span class="sub">v2 rubric (shadow)</span></div>
   <p id="edgeNote" class="sub"></p>
   <div class="kpis"><div class="kpi"><div class="v" id="k1">-</div><div class="l">tokens recorded</div></div><div class="kpi"><div class="v" id="k2">-</div><div class="l">judged at 24h</div></div>
   <div class="kpi"><div class="v" id="k3">-</div><div class="l">v1 pass: 24h survival</div></div><div class="kpi"><div class="v" id="k4">-</div><div class="l">v1 reject: 24h survival</div></div></div>
  </div>
 
- <div class="two">
+ <div class="two rv">
   <div class="panel"><h2>24h survival: pass vs reject (95% Wilson)</h2><canvas id="surv" height="220"></canvas><div id="survNote" class="sub"></div></div>
   <div class="panel"><h2>Paper equity (fees + slippage modelled)</h2><canvas id="eq" height="220"></canvas><div id="eqNote" class="sub"></div></div>
  </div>
 
- <div class="panel"><h2>Which signals go with bad outcomes (24h)</h2><div class="scroll"><table id="feat"></table></div>
+ <div class="panel rv"><h2>Which signals go with bad outcomes (24h)</h2><div class="scroll"><table id="feat"></table></div>
   <div class="sub">precision = share of flagged tokens that went bad. recall = share of bad tokens that were flagged. Sample n = the smaller of the flagged and clear groups. Lift = bad rate if flagged / baseline. p = two-sided Fisher exact, not adjusted for the many signals tested. * = intervals do not overlap. Correlated with each other and with market regime: not causal.</div></div>
 
- <div class="panel"><h2>Filter backtest simulator</h2>
+ <div class="panel rv"><h2>Filter backtest simulator</h2>
   <div class="sub">Recomputed in your browser on the recorded 24h-labelled tokens. Tuning on this same data overfits: treat a good-looking result as a hypothesis for new data.</div>
   <div class="sl"><label for="s_liq">Min liquidity $</label><input id="s_liq" type="range" min="0" max="200000" step="1000" value="10000"><output id="o_liq"></output></div>
   <div class="sl"><label for="s_top">Max top-10 holder %</label><input id="s_top" type="range" min="5" max="100" step="1" value="100"><output id="o_top"></output></div>
@@ -66,7 +101,9 @@ nav{display:flex;flex-wrap:wrap;gap:14px}
   <div id="simNote" class="sub"></div>
  </div>
 
- <div class="panel"><h2>Token risk inspector</h2>
+ <div class="panel rv"><h2>Token life replay (real recorded outcomes)</h2><div class="sub">Pick a recorded token and watch what happened after first sighting. Gaps mean that follow-up was not measured yet.</div><div id="replay"></div></div>
+
+ <div class="panel rv"><h2>Token risk inspector</h2>
   <div class="sub">Runs the open rubric (docs/rubric.js, same as desk/risk_engine.py). Paste a mint seen in the dataset, or try a sample. Unknown mints are looked up on DexScreener from your browser if it allows it; holder and authority data then stay unknown and add no points.</div>
   <input type="text" id="mint" placeholder="Solana mint address (case-sensitive)" autocomplete="off" autocapitalize="off" spellcheck="false">
   <div class="row"><button id="go">Inspect</button><button id="sPass">Sample: passed</button><button id="sRej">Sample: rejected</button><button id="sBad">Sample: went bad</button></div>
@@ -76,6 +113,7 @@ nav{display:flex;flex-wrap:wrap;gap:14px}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="rubric.js"></script>
+<script src="motion.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const RAW="https://raw.githubusercontent.com/Cyptoboy777/Pro-Desk-bot/live-data/data/api/v1/";
@@ -89,9 +127,9 @@ function setBadge(el,s){el.textContent=s;el.className="badge "+s;}
 
 function summary(s){
   setBadge($("edge"),s.edge_status);setBadge($("edge2"),s.edge_status_v2_shadow);$("edgeNote").textContent=s.edge_note;
-  $("k1").textContent=s.tokens_recorded;$("k2").textContent=s.judged_24h;
+  Motion.tween($("k1"),s.tokens_recorded);Motion.tween($("k2"),s.judged_24h);if($("flow"))Motion.flow($("flow"),s);
   const g=s.pass_vs_reject_24h.v1,f=x=>x.n?pct(x.survival_rate)+" ("+pct(x.survival_ci95[0])+"-"+pct(x.survival_ci95[1])+") n="+x.n:"n=0";
-  $("k3").textContent=pct(g.pass.survival_rate);$("k4").textContent=pct(g.reject.survival_rate);
+  Motion.tween($("k3"),(g.pass.survival_rate||0)*100,{fmt:v=>Math.round(v)+"%"});Motion.tween($("k4"),(g.reject.survival_rate||0)*100,{fmt:v=>Math.round(v)+"%"});
   const v2=s.pass_vs_reject_24h.v2_shadow, L=["v1 pass","v1 reject","v2 pass","v2 reject"], G=[g.pass,g.reject,v2.pass,v2.reject];
   chart("surv",{type:"bar",data:{labels:L,datasets:[{label:"24h survival",data:G.map(x=>x.n?x.survival_rate*100:0),backgroundColor:["#9a8cff","#4a4753","#4ade80","#4a4753"]},
     {type:"line",label:"95% CI low",data:G.map(x=>x.n?x.survival_ci95[0]*100:null),borderColor:"#f3da4f",showLine:false,pointStyle:"line",pointRadius:9},
@@ -120,15 +158,15 @@ function simulate(){
   const rows=DATA.filter(r=>r.bad_24h!=null);let pk=0,pn=0,rk=0,rn=0,pnl=0,trades=0;
   rows.forEach(r=>{const ok=r.liq>=liq&&(r.top10==null||r.top10<=top)&&(r.age_min==null||r.age_min>=age)&&((r.vol24||0)/Math.max(r.liq,1))>=vl;
     if(ok){pn++;pk+=r.bad_24h?1:0;if(r.ret_24h!=null){const cost=2*(0.003+0.5*25/Math.max(r.liq,1));pnl+=25*(Math.max(-1,(1+r.ret_24h)*(1-cost)-1));trades++;}}else{rn++;rk+=r.bad_24h?1:0;}});
-  $("r1").textContent=rows.length?pct(pn/rows.length)+" ("+pn+")":"-";
-  const a=wilson(pn-pk,pn);$("r2").textContent=pn?pct((pn-pk)/pn):"-";$("r3").textContent=rn?pct((rn-rk)/rn):"-";
-  $("r4").textContent=trades?(pnl>=0?"+":"-")+"$"+Math.abs(pnl).toFixed(2):"-";$("r4").className="v "+(pnl>=0?"pos":"neg");
+  rows.length?Motion.tween($("r1"),pn/rows.length*100,{fmt:v=>Math.round(v)+"% ("+pn+")",ms:350}):($("r1").textContent="-");
+  const a=wilson(pn-pk,pn);pn?Motion.tween($("r2"),(pn-pk)/pn*100,{fmt:v=>Math.round(v)+"%",ms:350}):($("r2").textContent="-");rn?Motion.tween($("r3"),(rn-rk)/rn*100,{fmt:v=>Math.round(v)+"%",ms:350}):($("r3").textContent="-");
+  trades?Motion.tween($("r4"),pnl,{fmt:v=>(v>=0?"+":"-")+"$"+Math.abs(v).toFixed(2),ms:350}):($("r4").textContent="-");$("r4").className="v "+(pnl>=0?"pos":"neg");
   $("simNote").textContent=pn?"passed-group survival 95% CI "+pct(a[0])+"-"+pct(a[1])+"; PnL assumes $25 entry at first sighting, held 24h, fee 0.3%/side plus slippage 0.5*size/liquidity per side; a vanished token is -100%. "+trades+" trades. Raw 24h price change is a crude exit, not an achievable fill.":"no tokens pass these filters";
 }
 function show(res,r,note){
-  const o=$("insOut");o.textContent="";
+  const o=$("insOut");o.textContent="";o.classList.remove("scan");void o.offsetWidth;o.classList.add("scan");
   const s=mk("div",(res.passed?"PASS":"REJECT")+" · risk score "+res.risk_score+"/100","badge "+(res.passed?"STATISTICAL_EDGE_DETECTED":"NO_EDGE"));o.appendChild(s);
-  const m=mk("div",null,"meter");const b=document.createElement("i");b.style.width=res.risk_score+"%";b.style.background=res.passed?"#4ade80":"#ff6b6b";m.appendChild(b);o.appendChild(m);
+  const m=mk("div",null,"meter");const b=document.createElement("i");b.style.width="0%";requestAnimationFrame(()=>requestAnimationFrame(()=>{b.style.width=res.risk_score+"%";}));b.style.background=res.passed?"#4ade80":"#ff6b6b";m.appendChild(b);o.appendChild(m);
   o.appendChild(mk("div","maturity "+res.components.maturity+" · concentration "+res.components.concentration+" · liquidity "+res.components.liquidity,"sub"));
   const ul=mk("ul");(res.failed_reasons.length?res.failed_reasons:["no risk points"]).forEach(x=>ul.appendChild(mk("li",x)));o.appendChild(ul);
   if(r&&r.bad_24h!=null)o.appendChild(mk("div","Recorded 24h outcome: "+(r.bad_24h?"BAD (vanished, liquidity or price at least halved)":"survived"),r.bad_24h?"neg":"pos"));
@@ -154,6 +192,8 @@ function sample(kind){const pick=DATA.filter(r=>kind==="pass"?Rubric.assess(r).p
 async function main(){
   try{summary(await get("summary"));}catch(e){$("status").textContent="could not load summary ("+e.message+"). The first Actions run creates it.";}
   get("features").then(features).catch(()=>{});
+  get("recent_scans").then(r=>Motion.replay($("replay"),r.scans)).catch(()=>{$("replay").textContent="replay data unavailable";});
+  Motion.hero($("heroCv"));Motion.reveal(".rv");Motion.spotlight(".panel");
   try{DATA=(await get("dataset")).rows;}catch(e){}
   slid.forEach(k=>$("s_"+k).addEventListener("input",simulate));simulate();
   $("go").onclick=()=>inspect($("mint").value);$("sPass").onclick=()=>sample("pass");$("sRej").onclick=()=>sample("rej");$("sBad").onclick=()=>sample("bad");

@@ -100,6 +100,8 @@ Both validate each payload's shape and cache by TTL. Packages on npm/PyPI are pl
 
 ## Edge worker and local safety hook
 
+The dashboard has an animated hero, a tap-through pipeline flow, count-up numbers, a token-life replay of real recorded outcomes and an animated risk inspector (`docs/motion.js`, respects reduced-motion settings).
+
 `worker/risk-check.js` is a read-only fetch-style worker (Cloudflare Workers compatible) for `GET /api/v1/actions/risk-check?mint=…`; it is tested but **not deployed yet** (see `worker/README.md`). Enable the local pre-commit zero-wallet guard once with `sh tools/install-hooks.sh`. The results table above is rewritten from `summary.json` by `tools/update_readme_counts.py` on every Pages mirror run.
 
 ## Layout
