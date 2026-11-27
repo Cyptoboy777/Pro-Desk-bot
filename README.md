@@ -15,14 +15,16 @@ An open, read-only research tool. It records real new Solana tokens, scores them
 
 Forward test, 24h horizon, "bad" = pair vanished, or liquidity or price at least halved (see [METHODOLOGY.md](METHODOLOGY.md)). Live numbers: `api/v1/summary.json`.
 
+<!-- COUNTS:START -->
 | engine | passed: bad outcomes | rejected: bad outcomes | edge status |
 |---|---|---|---|
-| v1 rules (live) | 41/49 = 84% (CI 71-91%) | 77/202 = 38% (CI 32-45%) | `NO_EDGE` |
-| v2 rubric (shadow) | 22/35 = 63% (CI 46-77%) | 96/216 = 44% (CI 38-51%) | `NO_EDGE` |
+| v1 rules (live) | 45/55 = 82% (CI 70%-90%) | 87/224 = 39% (CI 33%-45%) | `NO_EDGE` |
+| v2 rubric (shadow) | 22/36 = 61% (CI 45%-75%) | 110/243 = 45% (CI 39%-52%) | `NO_EDGE` |
 
-(**547 recorded tokens, 251 judged at 24h**, as of 2026-11-27. Status stays `NO_EDGE`.)
+(**570 recorded tokens, 279 judged at 24h**, as of 2026-11-27 UTC, auto-updated from `summary.json`. Held-out window (first seen on/after 2026-11-24): 78 judged.)
+<!-- COUNTS:END -->
 
-What this means: the basic static checks (authorities, LP lock, holder count, RugCheck flags) do **not** protect against 24h failure; tokens that pass them did worse than rejected ones, partly because passing needs liquidity of $20k+, which selects tokens in their most volatile phase. The v2 rubric was designed on tokens first seen before 2026-11-24 and locked; on the small post-lock sample (n=50) it also shows no separation. **We do not claim to have solved the false-pass problem.** The value of this project is the open, honest measurement that lets anyone test ideas against it. The paper desk is currently below its starting equity.
+What this means: the basic static checks (authorities, LP lock, holder count, RugCheck flags) do **not** protect against 24h failure; tokens that pass them did worse than rejected ones, partly because passing needs liquidity of $20k+, which selects tokens in their most volatile phase. The v2 rubric was designed on tokens first seen before 2026-11-24 and locked; on the small post-lock held-out sample it also shows no separation. **We do not claim to have solved the false-pass problem.** The value of this project is the open, honest measurement that lets anyone test ideas against it. The paper desk is currently below its starting equity.
 
 ## Architecture
 
@@ -95,6 +97,10 @@ from sdk.python.pro_desk_telemetry import TelemetryClient
 print(TelemetryClient().get_features()["features"][0]["sample_status"])
 ```
 Both validate each payload's shape and cache by TTL. Packages on npm/PyPI are planned, not published yet. `python generate_report.py --api docs/api/v1` regenerates [REPORT.md](REPORT.md); its out-of-time table uses only tokens first seen on/after 2026-11-24.
+
+## Edge worker and local safety hook
+
+`worker/risk-check.js` is a read-only fetch-style worker (Cloudflare Workers compatible) for `GET /api/v1/actions/risk-check?mint=…`; it is tested but **not deployed yet** (see `worker/README.md`). Enable the local pre-commit zero-wallet guard once with `sh tools/install-hooks.sh`. The results table above is rewritten from `summary.json` by `tools/update_readme_counts.py` on every Pages mirror run.
 
 ## Layout
 
