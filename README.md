@@ -21,7 +21,7 @@ Forward test, 24h horizon, "bad" = pair vanished, or liquidity or price at least
 | v1 rules (live) | 49/59 = 83% (CI 72%-91%) | 94/241 = 39% (CI 33%-45%) | `NO_EDGE` |
 | v2 rubric (shadow) | 24/38 = 63% (CI 47%-77%) | 119/262 = 45% (CI 40%-51%) | `NO_EDGE` |
 
-(**603 recorded tokens, 300 judged at 24h**, as of 2026-11-27 UTC, auto-updated from `summary.json`. Held-out window (first seen on/after 2026-11-24): 99 judged.)
+(**622 recorded tokens, 300 judged at 24h**, as of 2026-11-28 UTC, auto-updated from `summary.json`. Held-out window (first seen on/after 2026-11-24): 99 judged.)
 <!-- COUNTS:END -->
 
 What this means: the basic static checks (authorities, LP lock, holder count, RugCheck flags) do **not** protect against 24h failure; tokens that pass them did worse than rejected ones, partly because passing needs liquidity of $20k+, which selects tokens in their most volatile phase. The v2 rubric was designed on tokens first seen before 2026-11-24 and locked; on the small post-lock held-out sample it also shows no separation. **We do not claim to have solved the false-pass problem.** The value of this project is the open, honest measurement that lets anyone test ideas against it. The paper desk is currently below its starting equity.
