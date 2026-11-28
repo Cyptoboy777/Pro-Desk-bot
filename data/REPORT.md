@@ -3,7 +3,7 @@ elemetry — Empirical Report
 
 Generated from the append-only forward-test data. Descriptive research; not financial advice or a trading recommendation.
 
-- Recorded tokens: **622**
+- Recorded tokens: **640**
 - Judged at 24h: **300**
 - v1 (live rules), full sample: **NO_EDGE** — pass-group survival is not separable from reject-group survival (95% Wilson intervals overlap, or pass is worse)
 - v2 (shadow rubric), full sample: **NO_EDGE** — pass-group survival is not separable from reject-group survival (95% Wilson intervals overlap, or pass is worse)
@@ -35,11 +35,11 @@ Judged tokens in the held-out window: **99**. v2 defaults were designed and lock
 
 | window | expected | observed | missing | status | median LP delta % | median holder growth/h | median volume ratio |
 |---|---:|---:|---:|---|---:|---:|---:|
-| T+0m | 622 | 622 | 0 | NONE | n/a | n/a | n/a |
-| T+30m | 603 | 60 | 543 | PARTIAL | -95.4 | n/a | 0 |
-| T+2h | 603 | 60 | 543 | PARTIAL | -95.4 | n/a | 0 |
-| T+6h | 585 | 60 | 525 | PARTIAL | -95.4 | n/a | 0 |
-| T+24h | 547 | 60 | 487 | PARTIAL | -95.4 | n/a | 0 |
+| T+0m | 640 | 640 | 0 | NONE | n/a | n/a | n/a |
+| T+30m | 622 | 60 | 562 | PARTIAL | -95.4 | n/a | 0 |
+| T+2h | 622 | 60 | 562 | PARTIAL | -95.4 | n/a | 0 |
+| T+6h | 622 | 60 | 562 | PARTIAL | -95.4 | n/a | 0 |
+| T+24h | 570 | 60 | 510 | PARTIAL | -95.4 | n/a | 0 |
 
 ## Signals (24h)
 

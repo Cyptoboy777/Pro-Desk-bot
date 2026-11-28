@@ -1,4 +1,4 @@
-622 tokens recorded, 71 passed the Risk agent
+640 tokens recorded, 71 passed the Risk agent
 
 == about 1h after first sighting (raw price change, before any costs)
 PASSED    n=0
